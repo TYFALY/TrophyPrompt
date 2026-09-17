@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TrophyPrompt.ViewModels"
+        x:Class="TrophyPrompt.Views.CopyFromDialog"
+        x:DataType="vm:CopyFromDialogViewModel"
+        Title="Copy From psntrophyleaders" Width="440" Height="480"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="16" Spacing="10">
+    <TextBlock Text="Profile URL" FontWeight="Bold" />
+    <TextBox Text="{Binding Url, Mode=TwoWay}" Watermark="https://psntrophyleaders.com/user/view/.../..." IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}" />
+    <CheckBox Content="Shift dates (smart copy)" IsChecked="{Binding UseSmartCopy, Mode=TwoWay}" />
+    <StackPanel Spacing="8" IsVisible="{Binding UseSmartCopy}">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Years" Width="90" VerticalAlignment="Center" />
+        <NumericUpDown Value="{Binding Years, Mode=TwoWay}" Minimum="0" Width="120" />
+        <TextBlock Text="Months" Width="90" VerticalAlignment="Center" />
+        <NumericUpDown Value="{Binding Months, Mode=TwoWay}" Minimum="0" Width="120" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Days" Width="90" VerticalAlignment="Center" />
+        <NumericUpDown Value="{Binding Days, Mode=TwoWay}" Minimum="0" Width="120" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="Min minutes" Width="90" VerticalAlignment="Center" />
+        <NumericUpDown Value="{Binding MinMinutes, Mode=TwoWay}" Minimum="0" Width="120" />
+        <TextBlock Text="Max minutes" Width="90" VerticalAlignment="Center" />
+        <NumericUpDown Value="{Binding MaxMinutes, Mode=TwoWay}" Minimum="0" Width="120" />
+      </StackPanel>
+    </StackPanel>
+    <TextBlock Text="{Binding Status}" Foreground="Gray" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" />
+    <TextBlock Text="{Binding Error}" Foreground="Red" IsVisible="{Binding Error, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" />
+    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+      <Button Content="Cancel" Click="OnCancelClick" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}" />
+      <Button Content="OK" Classes="accent" Click="OnOkClick" IsEnabled="{Binding IsBusy, Converter={x:Static BoolConverters.Not}}" />
+    </StackPanel>
+  </StackPanel>
+</Window>
