@@ -461,8 +461,6 @@ namespace TrophyPrompt.ViewModels
                 WireRowActions(vm);
                 Trophies.Add(vm);
             }
-            string ignoredParadoxError;
-            ValidateTrophies(out ignoredParadoxError);
             UpdateCompletion();
             ApplyFilter();
         }
@@ -882,14 +880,6 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            ScrubLockedTimestamps();
-            string paradoxError;
-            if (!ValidateTrophies(out paradoxError))
-            {
-                StatusMessage = "Save blocked: " + paradoxError;
-                RaiseAlert("Save blocked", paradoxError);
-                return;
-            }
             StatusMessage = "Saving ...";
             await Task.Run(() =>
             {
@@ -921,14 +911,6 @@ namespace TrophyPrompt.ViewModels
         {
             if (!_isOpen || HostWindow == null)
             {
-                return;
-            }
-            ScrubLockedTimestamps();
-            string paradoxError;
-            if (!ValidateTrophies(out paradoxError))
-            {
-                StatusMessage = "Save blocked: " + paradoxError;
-                RaiseAlert("Save blocked", paradoxError);
                 return;
             }
             TopLevel topLevel = TopLevel.GetTopLevel(HostWindow);
@@ -1133,93 +1115,8 @@ namespace TrophyPrompt.ViewModels
             return -1;
         }
 
-        // Auto-scrub: locked rows must not carry timestamps into the binary.
-        // Mirrors TROPUSR.LockTrophy's time reset (new DateTime(0)) but leaves
-        // counters and achievement bits alone — those are already clear for
-        // locked rows. Runs before validation on every Save path, so stale
-        // file times never block a save.
-        private void ScrubLockedTimestamps()
+        private List<string> CheckChronology(IList<TrophyDto> list)
         {
-            if (_tconf == null || _tpsn == null || _tusr == null)
-            {
-                return;
-            }
-            for (int i = 0; i < _tconf.Count; i++)
-            {
-                if (IsTrophyGot(i))
-                {
-                    continue;
-                }
-                try
-                {
-                    _tpsn.DeleteTrophyByID(i);
-                }
-                catch
-                {
-                }
-                try
-                {
-                    TROPUSR.TrophyTimeInfo tti = _tusr.trophyTimeInfoTable[i];
-                    if (tti.Time.Ticks > 0)
-                    {
-                        tti.Time = new DateTime(0);
-                        _tusr.trophyTimeInfoTable[i] = tti;
-                        _haveBeenEdited = true;
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        // Chronological paradox check. Flags offending rows (HasParadox +
-        // ParadoxReason drive the red row highlight) and returns false with
-        // the first reason when the set must not be written back.
-        public bool ValidateTrophies(out string errorMessage)
-        {
-            List<ParadoxSnapshot> snapshots = new List<ParadoxSnapshot>(Trophies.Count);
-            for (int i = 0; i < Trophies.Count; i++)
-            {
-                TrophyItemViewModel t = Trophies[i];
-                t.HasParadox = false;
-                t.ParadoxReason = string.Empty;
-                snapshots.Add(new ParadoxSnapshot
-                {
-                    Id = t.Id,
-                    Name = t.Name ?? string.Empty,
-                    IsUnlocked = t.IsUnlocked,
-                    Timestamp = t.Timestamp,
-                    IsPlatinum = t.TrophyType == TropType.Platinum,
-                    Group = t.Group ?? string.Empty,
-                    Order = i
-                });
-            }
-            List<ParadoxResult> results = ParadoxValidator.Validate(snapshots);
-            if (results.Count == 0)
-            {
-                errorMessage = null;
-                return true;
-            }
-            Dictionary<int, TrophyItemViewModel> byId = new Dictionary<int, TrophyItemViewModel>(Trophies.Count);
-            for (int i = 0; i < Trophies.Count; i++)
-            {
-                byId[Trophies[i].Id] = Trophies[i];
-            }
-            for (int i = 0; i < results.Count; i++)
-            {
-                TrophyItemViewModel vm;
-                if (byId.TryGetValue(results[i].Id, out vm))
-                {
-                    vm.HasParadox = true;
-                    vm.ParadoxReason = results[i].Reason;
-                }
-            }
-            errorMessage = results[0].Reason;
-            return false;
-        }
-
-        private List<string> CheckChronology(IList<TrophyDto> list)        {
             List<string> warnings = new List<string>();
             DateTime prev = DateTime.MinValue;
             for (int k = 0; k < list.Count; k++)
@@ -1292,10 +1189,6 @@ namespace TrophyPrompt.ViewModels
                     trophies.Add(dto);
                 }
                 List<string> warnings = CheckChronology(trophies);
-                // Paradoxes never block export (export -> AI -> import is how
-                // you fix them); they only block Save. Flag rows + warn here.
-                string paradoxError;
-                bool paradoxFree = ValidateTrophies(out paradoxError);
                 var exportData = new ExportRootDto
                 {
                     GameTitle = GameTitle,
@@ -1339,19 +1232,11 @@ namespace TrophyPrompt.ViewModels
                     {
                         notice.AppendLine("Sequence check: OK (chronological).");
                     }
-                    if (!paradoxFree)
-                    {
-                        notice.AppendLine("PARADOX WARNING (exported anyway — fix before Save): " + paradoxError);
-                    }
                     File.WriteAllText(Path.ChangeExtension(localPath, ".notice.txt"), notice.ToString());
                 }
                 StatusMessage = warnings.Count > 0
                     ? "Exported JSON with " + warnings.Count + " sequence warning(s)."
                     : "Exported JSON successfully.";
-                if (!paradoxFree)
-                {
-                    StatusMessage += " Paradox flagged — fix before Save: " + paradoxError;
-                }
                 LogDiag("ExportJson: OK -> '" + localPath + "', rows=" + trophies.Count + ", warnings=" + warnings.Count + ".");
             }
             catch (Exception ex)

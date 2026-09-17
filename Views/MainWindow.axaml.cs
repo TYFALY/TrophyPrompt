@@ -213,17 +213,6 @@ namespace TrophyPrompt.Views
         {
             if (e.Row.DataContext is TrophyItemViewModel row)
             {
-                // Paradox highlight wins over lock/sync state. Rows are
-                // virtualized and recycled, so the tooltip must be cleared
-                // on every non-paradox pass too.
-                if (row.HasParadox)
-                {
-                    e.Row.Background = new SolidColorBrush(Color.Parse("#4A151B"));
-                    e.Row.Foreground = new SolidColorBrush(Color.Parse("#FF9E9E"));
-                    ToolTip.SetTip(e.Row, row.ParadoxReason);
-                    return;
-                }
-                ToolTip.SetTip(e.Row, null);
                 if (row.RowBrushKey == "Locked")
                 {
                     e.Row.Background = new SolidColorBrush(Color.Parse("#2A1619"));

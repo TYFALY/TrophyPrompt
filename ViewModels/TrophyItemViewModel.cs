@@ -49,12 +49,6 @@ namespace TrophyPrompt.ViewModels
         [ObservableProperty]
         private string _rowBrushKey = "Locked";
 
-        [ObservableProperty]
-        private bool _hasParadox;
-
-        [ObservableProperty]
-        private string _paradoxReason = string.Empty;
-
         public Action<TrophyItemViewModel> ToggleRequested { get; set; }
 
         public Action<TrophyItemViewModel> EditTimeRequested { get; set; }
