@@ -1,8 +1,6 @@
-# <img width="3072" height="1376" alt="BannerLogo" src="https://github.com/user-attachments/assets/4e8a811a-0d18-4914-9b9c-e270c1aed014" />
 # 🏆 TrophyPrompt
 
 PS3 trophy timestamp editor for Windows. Open a trophy folder, export it to JSON, let an LLM fill in realistic unlock times, import it back, save. That is the whole program.
-
 
 Built with Avalonia 11 on .NET 8, ported from [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood).
 
@@ -13,10 +11,6 @@ Built with Avalonia 11 on .NET 8, ported from [PS3TrophyIsGood](https://github.c
 3. **Paste the JSON into Claude or GPT** and take the timestamps it returns.
 4. **Import JSON** — matches entries by trophy ID (falls back to name) and applies the unlocks and times. Old plain-array exports still import fine.
 5. **Save** — writes the data back and re-signs the PFD.
-
-      <p align="center">
-        <img width="800" height="529" alt="TrophyPrompt" src="https://github.com/user-attachments/assets/e42d5c5a-6f14-4a1d-88f0-1d9afbc803aa" />
-      </p>
 
 ## Building it
 
@@ -40,7 +34,7 @@ The repo is self-contained: `TrophyPrompt.sln` builds everything, with `TROPHYPa
 
 Before every Save, the trophy set is validated:
 
-- locked trophies must not carry a timestamp
+- locked trophies must not carry a timestamp (stale ones are auto-cleared on Save, same as the legacy lock path)
 - nothing may predate the PS3 launch (2006-11-11)
 - an unlocked platinum must be the latest unlock
 - same-group unlocks must be in list order

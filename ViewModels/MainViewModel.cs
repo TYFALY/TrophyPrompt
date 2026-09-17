@@ -882,6 +882,7 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            ScrubLockedTimestamps();
             string paradoxError;
             if (!ValidateTrophies(out paradoxError))
             {
@@ -922,6 +923,7 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            ScrubLockedTimestamps();
             string paradoxError;
             if (!ValidateTrophies(out paradoxError))
             {
@@ -1129,6 +1131,46 @@ namespace TrophyPrompt.ViewModels
                 }
             }
             return -1;
+        }
+
+        // Auto-scrub: locked rows must not carry timestamps into the binary.
+        // Mirrors TROPUSR.LockTrophy's time reset (new DateTime(0)) but leaves
+        // counters and achievement bits alone — those are already clear for
+        // locked rows. Runs before validation on every Save path, so stale
+        // file times never block a save.
+        private void ScrubLockedTimestamps()
+        {
+            if (_tconf == null || _tpsn == null || _tusr == null)
+            {
+                return;
+            }
+            for (int i = 0; i < _tconf.Count; i++)
+            {
+                if (IsTrophyGot(i))
+                {
+                    continue;
+                }
+                try
+                {
+                    _tpsn.DeleteTrophyByID(i);
+                }
+                catch
+                {
+                }
+                try
+                {
+                    TROPUSR.TrophyTimeInfo tti = _tusr.trophyTimeInfoTable[i];
+                    if (tti.Time.Ticks > 0)
+                    {
+                        tti.Time = new DateTime(0);
+                        _tusr.trophyTimeInfoTable[i] = tti;
+                        _haveBeenEdited = true;
+                    }
+                }
+                catch
+                {
+                }
+            }
         }
 
         // Chronological paradox check. Flags offending rows (HasParadox +
