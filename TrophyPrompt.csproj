@@ -15,6 +15,14 @@
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
+  <!-- lib/ sources belong to their own projects (ProjectReference above);
+       keep the SDK default globs from compiling/copying them into this one. -->
+  <ItemGroup>
+    <Compile Remove="lib\**" />
+    <EmbeddedResource Remove="lib\**" />
+    <None Remove="lib\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.6" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.6" />
@@ -30,24 +38,24 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TROPHYParser\TROPHYParser\TROPHYParser.csproj" />
-    <ProjectReference Include="..\BigEndianTool\BigEndianTool\BigEndianTool.csproj" />
+    <ProjectReference Include="lib\TROPHYParser\TROPHYParser.csproj" />
+    <ProjectReference Include="lib\BigEndianTool\BigEndianTool.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\pfdtool.exe">
+    <Content Include="lib\pfdtool\pfdtool.exe">
       <Link>pfdtool\pfdtool.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\msvcr100.dll">
+    <Content Include="lib\pfdtool\msvcr100.dll">
       <Link>pfdtool\msvcr100.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\games.conf">
+    <Content Include="lib\pfdtool\games.conf">
       <Link>pfdtool\games.conf</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\global.conf">
+    <Content Include="lib\pfdtool\global.conf">
       <Link>pfdtool\global.conf</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -28,13 +28,27 @@ dotnet publish TrophyPrompt\TrophyPrompt.csproj -c Release -r win-x64 --self-con
 
 The exe lands in `bin\Release\net8.0\win-x64\publish\TrophyPrompt.exe`.
 
-One catch: a bare clone of this repo does not build on its own. The project file points at sibling folders (`..\TROPHYParser`, `..\BigEndianTool`, `..\PS3TrophyIsGood\pfdtool`) that live next to it in the original checkout. Either clone the full layout or vendor those three in and fix the paths.
+The repo is self-contained: `TrophyPrompt.sln` builds everything, with `TROPHYParser` and `BigEndianTool` vendored under `lib/` (both MIT, darkautism) and pfdtool in `lib/pfdtool`.
+
+## Paradox check
+
+Before every Save, the trophy set is validated:
+
+- locked trophies must not carry a timestamp
+- nothing may predate the PS3 launch (2006-11-11)
+- an unlocked platinum must be the latest unlock
+- same-group unlocks must be in list order
+
+A failing set blocks Save (and Save As) with the reason in the status bar, and the offending rows turn red — hover one for the exact reason. Export still works with paradoxes present (export is how you get AI help to fix them) but warns in the notice file.
 
 ## What's inside
 
+- `TrophyPrompt.sln` — builds the app plus vendored libs
+- `lib/` — vendored `TROPHYParser`, `BigEndianTool`, pfdtool
 - `Views/MainWindow.axaml` — trophy grid, search/filter bar, batch toolbar, animated wave header
-- `ViewModels/MainViewModel.cs` — open, save, export, import, row editing
+- `ViewModels/MainViewModel.cs` — open, save, export, import, row editing, paradox validation
 - `Models/TrophyDto.cs` — the trophy record plus `ExportRootDto`, the export wrapper that carries the system prompt
+- `Models/ParadoxValidator.cs` — the chronological validation rules
 - `Core/TrophyUtility.cs` — pfdtool decrypt/encrypt calls and temp-folder handling
 
 ## Notes

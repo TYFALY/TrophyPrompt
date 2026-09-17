@@ -1,6 +1,4 @@
-[Bb]in/
-[Oo]bj/
-.vs/
+bin/
+obj/
+debug.log
 *.user
-*.log
-publish/

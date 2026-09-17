@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103C-F316-4BA0-B9B2-E166740B8CEE}") = "TrophyPrompt", "TrophyPrompt.csproj", "{23E45FD3-506E-427C-B276-97C9872BA691}"
+EndProject
+Project("{9A19103C-F316-4BA0-B9B2-E166740B8CEE}") = "TROPHYParser", "lib\TROPHYParser\TROPHYParser.csproj", "{7B1A2C3D-4E5F-6071-8293-A4B5C6D7E8F9}"
+EndProject
+Project("{9A19103C-F316-4BA0-B9B2-E166740B8CEE}") = "BigEndianTool", "lib\BigEndianTool\BigEndianTool.csproj", "{8C2B3D4E-5F60-7182-93A4-B5C6D7E8F9A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{23E45FD3-506E-427C-B276-97C9872BA691}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23E45FD3-506E-427C-B276-97C9872BA691}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23E45FD3-506E-427C-B276-97C9872BA691}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23E45FD3-506E-427C-B276-97C9872BA691}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B1A2C3D-4E5F-6071-8293-A4B5C6D7E8F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B1A2C3D-4E5F-6071-8293-A4B5C6D7E8F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B1A2C3D-4E5F-6071-8293-A4B5C6D7E8F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B1A2C3D-4E5F-6071-8293-A4B5C6D7E8F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C2B3D4E-5F60-7182-93A4-B5C6D7E8F9A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C2B3D4E-5F60-7182-93A4-B5C6D7E8F9A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C2B3D4E-5F60-7182-93A4-B5C6D7E8F9A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C2B3D4E-5F60-7182-93A4-B5C6D7E8F9A0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
