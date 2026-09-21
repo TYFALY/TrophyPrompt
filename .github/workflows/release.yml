@@ -74,11 +74,41 @@ jobs:
         with:
           path: ./artifacts
 
-      - name: Generate Automatic Release Description
-        id: changelog
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          generate_release_notes: false
+          body: |
+            ## TrophyPrompt v1.1.0
+
+            **Cross-platform PS3 trophy timestamp editor** — now builds and runs on Windows, macOS (Intel + Apple Silicon), and Linux.
+
+            ### What's new
+            - **Vendored dependencies** — `TROPHYParser`, `BigEndianTool`, `pfdtool` all in `/vendor`, no external checkouts needed
+            - **Cross-platform builds** — Single-file self-contained executables for all 4 targets
+            - **CI/CD pipelines** — GitHub Actions builds on every PR, releases on tag push
+            - **Overhauled README** — Quick-start, contributing guide, project structure, license
+
+            ### Downloads
+            | Platform | File |
+            |----------|------|
+            | Windows x64 | `TrophyPrompt-win-x64.exe.zip` |
+            | Linux x64 | `TrophyPrompt-linux-x64.tar.gz` |
+            | macOS x64 (Intel) | `TrophyPrompt-osx-x64.tar.gz` |
+            | macOS ARM64 (Apple Silicon) | `TrophyPrompt-osx-arm64.tar.gz` |
+
+            ### Known limitation
+            `pfdtool` (PFD encryption/decryption) is Windows-only. On macOS/Linux the app launches but decryption/encryption won't work unless you provide a cross-platform alternative or run the Windows binary via Wine.
+
+            ### Building from source
+            ```bash
+            git clone https://github.com/TYFALY/TrophyPrompt.git
+            cd TrophyPrompt
+            dotnet build TrophyPrompt.sln -c Release
+            dotnet run --project TrophyPrompt.csproj -c Release
+            ```
+
+            See [README](https://github.com/TYFALY/TrophyPrompt#readme) for full docs.
           files: |
             ./artifacts/*/*
         env:
