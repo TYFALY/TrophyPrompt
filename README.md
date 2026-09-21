@@ -14,6 +14,12 @@ Built with Avalonia 11 on .NET 8, ported from [PS3TrophyIsGood](https://github.c
 4. **Import JSON** — matches entries by trophy ID (falls back to name) and applies the unlocks and times. Old plain-array exports still import fine.
 5. **Save** — writes the data back and re-signs the PFD.
 
+<div align="center">
+  <img width="800" height="529" alt="TrophyPrompt" src="https://github.com/user-attachments/assets/91ab2190-b62c-45ab-b93b-d60453c3f19e" />
+</div>
+
+
+
 ## Building it
 
 Requires the .NET 8 SDK on Windows.
