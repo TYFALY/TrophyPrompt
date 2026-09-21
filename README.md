@@ -1,100 +1,139 @@
 # <img width="3072" height="1376" alt="BannerLogo" src="https://github.com/user-attachments/assets/4e8a811a-0d18-4914-9b9c-e270c1aed014" />
+
 # 🏆 TrophyPrompt
 
-PS3 trophy timestamp editor for Windows, macOS, and Linux. Open a trophy folder, export it to JSON, let an LLM fill in realistic unlock times, import it back, save. That is the whole program.
+**Edit PS3 trophy timestamps without the headache.** Open a trophy folder, export to JSON, let an LLM generate realistic unlock times, import back, save. Done.
 
-Built with Avalonia 11 on .NET 8, ported from [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood).
+[![Build](https://github.com/TYFALY/TrophyPrompt/actions/workflows/ci.yml/badge.svg)](https://github.com/TYFALY/TrophyPrompt/actions/workflows/ci.yml)
+[![Release](https://github.com/TYFALY/TrophyPrompt/actions/workflows/release.yml/badge.svg)](https://github.com/TYFALY/TrophyPrompt/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![Avalonia 11](https://img.shields.io/badge/Avalonia-11-blue.svg)](https://avaloniaui.net/)
 
-## The workflow
+Built with Avalonia 11 on .NET 8. Ported from [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood).
 
-1. **Open Folder** — pick a PS3 trophy directory (something like `NPWR03468_00`). The app decrypts `TROPTRNS.DAT` / `TROPUSR.DAT` with pfdtool.
-2. **Export JSON** — writes one file with the game title, title ID, account ID, the full trophy list, and a system prompt footer. The prompt sets the rules: don't rename anything, don't touch existing timestamps, keep everything chronological, platinum pops last.
-3. **Paste the JSON into Claude or GPT** and take the timestamps it returns.
-4. **Import JSON** — matches entries by trophy ID (falls back to name) and applies the unlocks and times. Old plain-array exports still import fine.
-5. **Save** — writes the data back and re-signs the PFD.
+---
+
+## Why this exists
+
+PS3 trophy timestamps are stored in encrypted PFD files. Editing them manually is painful. TrophyPrompt makes it boringly simple:
+
+| Step | What you do |
+|------|-------------|
+| 1. **Open** | Pick a trophy folder (e.g. `NPWR03468_00`) — app decrypts `TROPTRNS.DAT` / `TROPUSR.DAT` |
+| 2. **Export** | Get a JSON file with game title, title ID, account ID, full trophy list, and a system prompt |
+| 3. **Generate** | Paste JSON into Claude/GPT → get back realistic, chronological timestamps |
+| 4. **Import** | Matches by trophy ID (falls back to name), applies unlocks + times |
+| 5. **Save** | Re-encrypts and re-signs the PFD |
 
 <div align="center">
-  <img width="800" height="529" alt="TrophyPrompt" src="https://github.com/user-attachments/assets/91ab2190-b62c-45ab-b93b-d60453c3f19e" />
+  <img width="800" height="529" alt="TrophyPrompt UI" src="https://github.com/user-attachments/assets/91ab2190-b62c-45ab-b93b-d60453c3f19e" />
 </div>
 
-## Building it
+---
 
-Requires the .NET 8 SDK.
-
-All external dependencies are vendored internally under `/vendor`:
-- `vendor/TROPHYParser` — PS3 trophy data parsing
-- `vendor/BigEndianTool` — Big-endian binary reading/writing
-- `vendor/pfdtool` — Native PS3 PFD encryption/decryption tool (Windows only)
-
-### Cross-platform build (Windows, macOS, Linux)
+## Quick Start (60 seconds)
 
 ```bash
-# Clone the repository
+# Clone & build
 git clone https://github.com/TYFALY/TrophyPrompt.git
 cd TrophyPrompt
-
-# Restore dependencies
-dotnet restore
-
-# Build for current platform
 dotnet build TrophyPrompt.sln -c Release
 
-# Run the application
+# Run
 dotnet run --project TrophyPrompt.csproj -c Release
 ```
 
-### Single-file self-contained executables
+**Prefer a standalone executable?** Grab the latest from [Releases](https://github.com/TYFALY/TrophyPrompt/releases) — single file, no .NET install needed.
 
-#### Windows x64
+---
+
+## Features
+
+- **Cross-platform** — Windows, macOS (Intel + Apple Silicon), Linux
+- **Zero external deps** — `TROPHYParser`, `BigEndianTool`, `pfdtool` all vendored in `/vendor`
+- **Smart import** — Matches by trophy ID, falls back to name, preserves existing timestamps
+- **LLM-ready export** — JSON includes system prompt that enforces chronological order, platinum last
+- **Batch toolbar** — Edit multiple trophies at once
+- **Animated wave header** — Because life's too short for boring UIs
+
+---
+
+## Building from source
+
+Requires .NET 8 SDK. All dependencies vendored — no sibling checkouts needed.
+
 ```bash
-dotnet publish TrophyPrompt.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./publish/win-x64
+# Standard build (current platform)
+dotnet build TrophyPrompt.sln -c Release
+
+# Single-file self-contained executables
+dotnet publish TrophyPrompt.csproj -c Release -r win-x64   --self-contained true -p:PublishSingleFile=true -o ./publish/win-x64
+dotnet publish TrophyPrompt.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -o ./publish/linux-x64
+dotnet publish TrophyPrompt.csproj -c Release -r osx-x64   --self-contained true -p:PublishSingleFile=true -o ./publish/osx-x64
+dotnet publish TrophyPrompt.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o ./publish/osx-arm64
 ```
-Output: `publish/win-x64/TrophyPrompt.exe` (~79 MB, no .NET runtime required)
 
-#### Linux x64
-```bash
-dotnet publish TrophyPrompt.csproj -c Release -r linux-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./publish/linux-x64
-```
-Output: `publish/linux-x64/TrophyPrompt`
+> **Note:** `pfdtool` (PFD encryption/decryption) is Windows-only. On macOS/Linux the app launches but decryption/encryption won't work unless you provide a cross-platform alternative or run the Windows binary via Wine.
 
-#### macOS x64 (Intel)
-```bash
-dotnet publish TrophyPrompt.csproj -c Release -r osx-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./publish/osx-x64
-```
-Output: `publish/osx-x64/TrophyPrompt`
+---
 
-#### macOS ARM64 (Apple Silicon)
-```bash
-dotnet publish TrophyPrompt.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -o ./publish/osx-arm64
-```
-Output: `publish/osx-arm64/TrophyPrompt`
+## Automated Releases
 
-> **Note:** The `pfdtool` native executable is Windows-only. On macOS and Linux, the application will launch but trophy decryption/encryption operations will not function unless a compatible cross-platform alternative is provided or the Windows binary is run via Wine.
-
-### Automated Releases
-
-Releases are created automatically by pushing a semantic version tag:
+Push a semver tag — GitHub Actions handles the rest:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-This triggers the GitHub Actions release pipeline which:
-1. Builds self-contained single-file binaries for Windows (x64), Linux (x64), macOS (x64), and macOS (ARM64)
-2. Packages each as `.tar.gz` (Unix) or `.zip` (Windows)
-3. Creates a GitHub Release with auto-generated changelog from commit history
-4. Attaches all platform artifacts to the release
+Pipeline builds all four platforms, packages as `.tar.gz` (Unix) / `.zip` (Windows), generates changelog from commits, attaches artifacts to the release.
 
-## What's inside
+---
 
-- `Views/MainWindow.axaml` — trophy grid, search/filter bar, batch toolbar, animated wave header
-- `ViewModels/MainViewModel.cs` — open, save, export, import, row editing
-- `Models/TrophyDto.cs` — the trophy record plus `ExportRootDto`, the export wrapper that carries the system prompt
-- `Core/TrophyUtility.cs` — pfdtool decrypt/encrypt calls and temp-folder handling
-- `vendor/` — vendored `TROPHYParser`, `BigEndianTool`, and `pfdtool` (no external checkout needed)
+## Project Structure
 
-## Notes
+```
+TrophyPrompt/
+├── Views/           # MainWindow, dialogs, wave animation
+├── ViewModels/      # Main logic: open/save/export/import, row editing
+├── Models/          # TrophyDto, ExportRootDto (with system prompt)
+├── Core/            # TrophyUtility — pfdtool calls, temp folder handling
+├── vendor/
+│   ├── TROPHYParser/    # PS3 trophy parsing
+│   ├── BigEndianTool/   # Big-endian binary I/O
+│   └── pfdtool/         # Native PFD crypto (Windows exe + configs)
+└── TrophyPrompt.sln
+```
 
-- pfdtool and its key files (`games.conf`, `global.conf`) ship in the output folder, along with `msvcr100.dll` (Windows only).
-- Only mess with trophy folders you own. PlayStation is a trademark of Sony; this project is not affiliated with or endorsed by them.
+---
+
+## Contributing
+
+Help is welcome — seriously. This is a niche tool and every PR matters.
+
+**Good places to start:**
+- Cross-platform `pfdtool` alternative (biggest gap — see note above)
+- Linux/macOS packaging (AppImage, DMG, Flatpak)
+- Unit tests for the parser layer
+- UI polish / accessibility improvements
+
+**Quick contributing flow:**
+1. Fork → branch → PR
+2. `dotnet build` and `dotnet format` must pass
+3. Describe the change; screenshots for UI work
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) if it exists, otherwise just open a PR.
+
+---
+
+## License & Credits
+
+**MIT License** — see [LICENSE](LICENSE) for details.
+
+- Original PS3 trophy parsing logic: [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood) by darkautism
+- `pfdtool` by flatz (included in `/vendor/pfdtool`)
+- Avalonia UI framework
+- CommunityToolkit.Mvvm, Newtonsoft.Json, SkiaSharp, HarfBuzzSharp
+
+> Only mess with trophy folders you own. PlayStation is a trademark of Sony; this project is not affiliated with or endorsed by them.
