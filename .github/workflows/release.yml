@@ -1,0 +1,85 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish Artifacts (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            output_name: TrophyPrompt-linux-x64
+          - os: macos-latest
+            target: osx-x64
+            output_name: TrophyPrompt-osx-x64
+          - os: macos-latest
+            target: osx-arm64
+            output_name: TrophyPrompt-osx-arm64
+          - os: windows-latest
+            target: win-x64
+            output_name: TrophyPrompt-win-x64.exe
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish Binary
+        run: |
+          dotnet publish -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true -o ./publish
+
+      - name: Package Release Asset (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd ./publish
+          tar -czvf ../${{ matrix.output_name }}.tar.gz .
+
+      - name: Package Release Asset (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path ./publish/* -DestinationPath ./${{ matrix.output_name }}.zip
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.output_name }}
+          path: |
+            *.tar.gz
+            *.zip
+
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download All Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Generate Automatic Release Description
+        id: changelog
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            ./artifacts/*/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -6,16 +6,16 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\Trophy.ico</ApplicationIcon>
+    <ApplicationIcon>Assets/Trophy.ico</ApplicationIcon>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
-    <AvaloniaResource Include="Assets\**" />
-    <Compile Remove="Dependencies\**" />
-    <EmbeddedResource Remove="Dependencies\**" />
-    <None Remove="Dependencies\**" />
+    <Folder Include="Models/" />
+    <AvaloniaResource Include="Assets/**" />
+    <Compile Remove="vendor/**" />
+    <EmbeddedResource Remove="vendor/**" />
+    <None Remove="vendor/**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,26 +33,38 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Dependencies\TROPHYParser\TROPHYParser.csproj" />
-    <ProjectReference Include="Dependencies\BigEndianTool\BigEndianTool.csproj" />
+    <Reference Include="TROPHYParser">
+      <HintPath>vendor/TROPHYParser/bin/$(Configuration)/net8.0/TROPHYParser.dll</HintPath>
+    </Reference>
+    <Reference Include="BigEndianTool">
+      <HintPath>vendor/BigEndianTool/bin/$(Configuration)/net8.0/BigEndianTool.dll</HintPath>
+    </Reference>
+    <Reference Include="pfdtool">
+      <HintPath>vendor/pfdtool/bin/$(Configuration)/net8.0/pfdtool.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\pfdtool.exe">
-      <Link>pfdtool\pfdtool.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\msvcr100.dll">
-      <Link>pfdtool\msvcr100.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\games.conf">
-      <Link>pfdtool\games.conf</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\PS3TrophyIsGood\pfdtool\global.conf">
-      <Link>pfdtool\global.conf</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  <Target Name="BuildVendorProjects" BeforeTargets="Build">
+    <MSBuild Projects="vendor/TROPHYParser/TROPHYParser.csproj;vendor/BigEndianTool/BigEndianTool.csproj;vendor/pfdtool/pfdtool.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+  </Target>
+
+  <Target Name="CopyPfdtoolNativeFiles" AfterTargets="Build">
+    <ItemGroup>
+      <PfdtoolNativeFiles Include="vendor/pfdtool/pfdtool.exe" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/msvcr100.dll" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/games.conf" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/global.conf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PfdtoolNativeFiles)" DestinationFolder="$(OutputPath)pfdtool" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="CopyPfdtoolNativeFilesPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <PfdtoolNativeFiles Include="vendor/pfdtool/pfdtool.exe" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/msvcr100.dll" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/games.conf" />
+      <PfdtoolNativeFiles Include="vendor/pfdtool/global.conf" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PfdtoolNativeFiles)" DestinationFolder="$(PublishDir)pfdtool" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

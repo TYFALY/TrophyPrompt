@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>pfdtool</RootNamespace>
+    <AssemblyName>pfdtool</AssemblyName>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="pfdtool.exe" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="msvcr100.dll" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="games.conf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="global.conf" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

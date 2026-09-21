@@ -2,16 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>TROPHYParser</RootNamespace>
-    <AssemblyName>TROPHYParser</AssemblyName>
+    <RootNamespace>BigEndianTool</RootNamespace>
+    <AssemblyName>BigEndianTool</AssemblyName>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <LangVersion>latest</LangVersion>
+    <RuntimeIdentifiers>win-x64;linux-x64;osx-x64;osx-arm64</RuntimeIdentifiers>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BigEndianTool\BigEndianTool.csproj" />
-  </ItemGroup>
 
 </Project>
