@@ -1,0 +1,13 @@
+# Build artifacts
+bin/
+obj/
+publish/
+publish-standalone/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# NuGet
+packages/

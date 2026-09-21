@@ -1,0 +1,279 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:TrophyPrompt.ViewModels"
+        xmlns:wave="using:TrophyPrompt.Controls"
+        x:Class="TrophyPrompt.Views.MainWindow"
+        x:Name="MainWin"
+        x:DataType="vm:MainViewModel"
+         Title="TrophyPrompt" Width="1120" Height="740"
+          MinWidth="950" MinHeight="600" UseLayoutRounding="True"
+           Icon="/Assets/Trophy.ico">
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFolderCommand}" />
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCommand}" />
+    <KeyBinding Gesture="Ctrl+E" Command="{Binding ExportJsonCommand}" />
+    <KeyBinding Gesture="Ctrl+I" Command="{Binding ImportJsonCommand}" />
+    <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseFileCommand}" />
+  </Window.KeyBindings>
+  <Window.Styles>
+    <Style Selector="TextBlock.metaLabel">
+      <Setter Property="Foreground" Value="#9FB0C8" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="TextBlock.metaValue">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="Button.chip">
+      <Setter Property="CornerRadius" Value="12" />
+      <Setter Property="Padding" Value="10,4" />
+      <Setter Property="Margin" Value="2" />
+    </Style>
+    <!-- Explicitly override internal Header Presenter Padding and Alignment -->
+    <Style Selector="DataGridColumnHeader">
+      <Setter Property="MinHeight" Value="40" />
+      <Setter Property="Padding" Value="2,0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="#11161D" />
+      <Setter Property="Foreground" Value="#8B949E" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <!-- Force Column Header TextBlocks to wrap or scale without clipping -->
+    <Style Selector="DataGridColumnHeader TextBlock">
+      <Setter Property="TextAlignment" Value="Center" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <!-- Cell Content Centering for Toggle/Status Columns -->
+    <Style Selector="DataGridCell">
+      <Setter Property="Padding" Value="4,2" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto">
+    <!-- 1. Menu (File / Advanced / Refresh) -->
+    <Menu Grid.Row="0">
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open Folder" Command="{Binding OpenFolderCommand}" />
+        <MenuItem Header="_Save" Command="{Binding SaveCommand}" IsEnabled="{Binding IsOpen}" />
+        <MenuItem Header="Save _As (copy)" Command="{Binding SaveAsCommand}" IsEnabled="{Binding IsOpen}" />
+        <Separator />
+        <MenuItem Header="Export Trophies to _JSON" Command="{Binding ExportJsonCommand}" IsEnabled="{Binding IsOpen}" />
+        <MenuItem Header="_Import Trophies from JSON" Command="{Binding ImportJsonCommand}" IsEnabled="{Binding IsOpen}" />
+        <MenuItem Header="Export _CSV" Command="{Binding ExportCsvCommand}" IsEnabled="{Binding IsOpen}" />
+        <MenuItem Header="Export _Text log" Command="{Binding ExportTextCommand}" IsEnabled="{Binding IsOpen}" />
+        <Separator />
+        <MenuItem Header="_Close file" Command="{Binding CloseFileCommand}" IsEnabled="{Binding IsOpen}" />
+        <Separator />
+        <MenuItem Header="E_xit" Click="OnExitClick" />
+      </MenuItem>
+      <MenuItem Header="_Refresh" Command="{Binding RefreshCommand}" IsEnabled="{Binding IsOpen}" />
+    </Menu>
+
+    <!-- 2. PS3 wave header canvas -->
+    <Panel Grid.Row="1" Height="110">
+      <wave:Ps3WaveControl ZIndex="0" />
+      <StackPanel ZIndex="1" Margin="14,10" Spacing="2" VerticalAlignment="Center">
+        <TextBlock Text="{Binding GameTitle, FallbackValue='No trophy folder loaded'}" FontSize="22" FontWeight="Bold" Foreground="White" />
+        <TextBlock Text="{Binding CurrentFolder, FallbackValue='Open a folder (or drag &amp; drop) to begin'}" FontSize="12" Foreground="#C7D2E4" />
+      </StackPanel>
+    </Panel>
+
+    <!-- 3. Header & PSN metadata panel -->
+    <Border Grid.Row="2" Padding="12,6" Background="#111827">
+      <Grid ColumnDefinitions="*,*,*,*">
+        <StackPanel Grid.Column="0" Margin="4" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Classes="metaLabel" Text="Game Title" />
+          <TextBlock Classes="metaValue" Text="{Binding GameTitle, FallbackValue='—'}" />
+          <TextBlock Classes="metaLabel" Text="Title ID (NPWR...)" />
+          <TextBlock Classes="metaValue" Text="{Binding TitleId, FallbackValue='—'}" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="4" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Classes="metaLabel" Text="PSN Account ID (hex)" />
+          <TextBlock Classes="metaValue" Text="{Binding AccountId, FallbackValue='—'}" />
+          <TextBlock Classes="metaLabel" Text="Trophy Set Version" />
+          <TextBlock Classes="metaValue" Text="{Binding TrophySetVersion, FallbackValue='—'}" />
+        </StackPanel>
+        <StackPanel Grid.Column="2" Margin="4" Spacing="2" VerticalAlignment="Center">
+          <TextBlock Classes="metaLabel" Text="Sync State" />
+          <TextBlock Classes="metaValue" Text="{Binding SyncState, FallbackValue='—'}" />
+          <TextBlock Classes="metaLabel" Text="PFD Signature" />
+          <TextBlock Classes="metaValue" Text="{Binding PfdStatus}" />
+        </StackPanel>
+        <StackPanel Grid.Column="3" Margin="4" Spacing="4" VerticalAlignment="Center">
+          <TextBlock Classes="metaLabel" Text="Progress" />
+          <ProgressBar Minimum="0" Maximum="{Binding ProgressMax}" Value="{Binding ProgressValue}" Height="14" />
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <TextBlock Classes="metaValue" Text="{Binding CountText}" />
+            <TextBlock Classes="metaValue" Text="{Binding PointsText}" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- 4. Live search & filter toolbar (wraps on narrow windows) -->
+    <WrapPanel Grid.Row="3" Margin="8,4" Orientation="Horizontal">
+      <TextBox Text="{Binding SearchText, Mode=TwoWay}" Watermark="Search title / description..." Width="250" Margin="0,4,8,4" />
+      <Button Classes="chip" Content="All" Command="{Binding SetFilterCommand}" CommandParameter="All" />
+      <Button Classes="chip" Content="Platinum" Command="{Binding SetFilterCommand}" CommandParameter="Platinum" />
+      <Button Classes="chip" Content="Gold" Command="{Binding SetFilterCommand}" CommandParameter="Gold" />
+      <Button Classes="chip" Content="Silver" Command="{Binding SetFilterCommand}" CommandParameter="Silver" />
+      <Button Classes="chip" Content="Bronze" Command="{Binding SetFilterCommand}" CommandParameter="Bronze" />
+      <Button Classes="chip" Content="Unlocked" Command="{Binding SetFilterCommand}" CommandParameter="Unlocked" />
+      <Button Classes="chip" Content="Locked" Command="{Binding SetFilterCommand}" CommandParameter="Locked" />
+      <Button Classes="chip" Content="Hidden" Command="{Binding SetFilterCommand}" CommandParameter="Hidden" />
+    </WrapPanel>
+
+    <!-- 5. Batch editing toolbar (wraps on narrow windows) -->
+    <WrapPanel Grid.Row="4" Margin="8,2" Orientation="Horizontal" IsEnabled="{Binding IsOpen}">
+      <Button Content="Lock All" Command="{Binding LockAllCommand}" Padding="10,4" Margin="2" />
+      <Button Content="Unlock All" Command="{Binding UnlockAllCommand}" Padding="10,4" Margin="2" />
+      <Button Content="Randomize" Command="{Binding RandomizeTimestampsCommand}" Padding="10,4" Margin="2" ToolTip.Tip="Randomize timestamps between random start/end" />
+      <Button Content="Copy Times" Command="{Binding CopyTimestampsCommand}" Padding="10,4" Margin="2" ToolTip.Tip="Copy timestamps sequentially from batch time" />
+      <Button Content="Batch Set Time..." Click="OnBatchTimeClick" Padding="10,4" Margin="2" />
+      <Button Content="Toggle Selected" Command="{Binding ToggleUnlockSelectedCommand}" Padding="10,4" Margin="2" />
+      <Button Content="Edit Time..." Click="OnEditTimeClick" Padding="10,4" Margin="2" />
+      <TextBlock Text="{Binding BatchCustomTime, StringFormat='Batch: {0:yyyy-MM-dd HH:mm}'}" VerticalAlignment="Center" Margin="6,2" />
+    </WrapPanel>
+
+    <!-- 6. Main DataGrid (star-sized) -->
+    <DataGrid Grid.Row="5" Margin="0,4,0,0"
+              ItemsSource="{Binding FilteredTrophies}"
+              SelectedItem="{Binding SelectedTrophy, Mode=TwoWay}"
+              AutoGenerateColumns="False" IsReadOnly="False"
+              CanUserResizeColumns="True" CanUserSortColumns="True"
+              Background="Transparent" RowBackground="Transparent"
+              HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+              Foreground="#E6EDF3"
+              GridLinesVisibility="All" DoubleTapped="OnGridDoubleTapped" LoadingRow="OnLoadingRow">
+      <DataGrid.Styles>
+        <!-- Fix Header Row Height & Centering (mirrors Window.Styles: scoped wins) -->
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="MinHeight" Value="40" />
+          <Setter Property="Padding" Value="2,0" />
+          <Setter Property="HorizontalContentAlignment" Value="Center" />
+          <Setter Property="VerticalContentAlignment" Value="Center" />
+          <Setter Property="Background" Value="#11161D" />
+          <Setter Property="Foreground" Value="#8B949E" />
+          <Setter Property="FontWeight" Value="SemiBold" />
+          <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="DataGridColumnHeader TextBlock">
+          <Setter Property="TextAlignment" Value="Center" />
+          <Setter Property="HorizontalAlignment" Value="Center" />
+          <Setter Property="VerticalAlignment" Value="Center" />
+          <Setter Property="Margin" Value="0" />
+        </Style>
+        <!-- Fix Cell Text Alignment & Padding -->
+        <Style Selector="DataGridCell">
+          <Setter Property="Padding" Value="4,2" />
+          <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+      </DataGrid.Styles>
+      <DataGrid.Columns>
+        <!-- 1. ICON (Fixed Width) -->
+        <DataGridTemplateColumn Header="Icon" Width="68">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <Image Height="48" Width="48" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality" Stretch="Uniform" Source="{Binding IconImage}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 2. TYPE (badge + text, fixed width; kept as template so the grade badge survives) -->
+        <DataGridTemplateColumn Header="Type" Width="75">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <StackPanel Spacing="2" Margin="4,2" VerticalAlignment="Center">
+                <Border Background="{Binding TypeBadgeBrush}" CornerRadius="4" Padding="8,3" HorizontalAlignment="Center">
+                  <TextBlock Text="{Binding TypeBadgeText}" Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" />
+                </Border>
+                <TextBlock Text="{Binding TypeStr}" FontSize="10" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 3. NAME (Proportional Flex) -->
+        <DataGridTemplateColumn Header="Name" Width="1.5*" MinWidth="150">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <TextBlock Text="{Binding Name}" Padding="6,4" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 4. DESCRIPTION (Proportional Flex) -->
+        <DataGridTemplateColumn Header="Description" Width="3*" MinWidth="250">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <TextBlock Text="{Binding Detail}" Padding="6,4" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 5. HIDDEN (Centered Fixed, widened so the full header word fits) -->
+        <DataGridTemplateColumn Header="Hidden" Width="92">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <TextBlock Text="{Binding HiddenText}" Padding="6,4" TextAlignment="Center" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 6. UNLOCKED (CheckBox + ToggleCommand so clicks persist; a CheckBoxColumn would bypass save) -->
+        <DataGridTemplateColumn Header="Unlocked" Width="104">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <CheckBox IsChecked="{Binding IsUnlocked, Mode=OneWay}" Command="{Binding ToggleCommand}" Margin="4,2" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 7. SYNC (Centered Fixed) -->
+        <DataGridTemplateColumn Header="Sync" Width="75">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <TextBlock Text="{Binding SyncText}" Padding="6,4" TextAlignment="Center" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 8. TIMESTAMP (Expanded Width for Date + Button) -->
+        <DataGridTemplateColumn Header="Timestamp" Width="200" MinWidth="180">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <DockPanel LastChildFill="True" Margin="2" VerticalAlignment="Center">
+                <Button Content="..." Command="{Binding EditTimeCommand}" DockPanel.Dock="Right" Margin="4,0,0,0" Padding="6,2" />
+                <TextBlock Text="{Binding TimeString}" TextTrimming="None" VerticalAlignment="Center" />
+              </DockPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- 9. GROUP (Expanded Width) -->
+        <DataGridTemplateColumn Header="Group" Width="110" MinWidth="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:TrophyItemViewModel">
+              <TextBlock Text="{Binding Group}" Padding="6,4" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <!-- 7. Status footer -->
+    <DockPanel Grid.Row="6" Margin="10,6">
+      <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" DockPanel.Dock="Left" />
+      <TextBlock Text="TrophyPrompt — Avalonia UI 11 / .NET 8" HorizontalAlignment="Right" Foreground="Gray" FontSize="11" />
+    </DockPanel>
+  </Grid>
+</Window>
