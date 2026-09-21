@@ -1,0 +1,24 @@
+﻿2026-09-21T22:51:06.4531495Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:51:06.4533763Z ##[group]Run actions/setup-dotnet@v4
+2026-09-21T22:51:06.4534015Z with:
+2026-09-21T22:51:06.4534185Z   dotnet-version: 8.0.x
+2026-09-21T22:51:06.4535125Z   cache: false
+2026-09-21T22:51:06.4535310Z ##[endgroup]
+2026-09-21T22:51:06.6410065Z (node:4160) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-21T22:51:06.6411462Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-21T22:51:06.9010733Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\v4\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Runtime dotnet -Channel LTS
+2026-09-21T22:51:10.1635239Z dotnet-install: Downloaded file https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-win-x64.zip size is 36960258 bytes.
+2026-09-21T22:51:10.1638267Z dotnet-install: Either downloaded or local package size can not be measured. One of them may be corrupted.
+2026-09-21T22:51:10.1665017Z dotnet-install: Extracting the archive.
+2026-09-21T22:51:11.3234050Z dotnet-install: Note that the script does not ensure your Windows version is supported during the installation.
+2026-09-21T22:51:11.3241159Z dotnet-install: To check the list of supported versions, go to https://learn.microsoft.com/dotnet/core/install/windows#supported-versions
+2026-09-21T22:51:11.3247305Z dotnet-install: Installed version is 10.0.12
+2026-09-21T22:51:11.3253263Z dotnet-install: Installation finished
+2026-09-21T22:51:11.4842702Z [command]"C:\Program Files\PowerShell\7\pwsh.exe" -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command & 'D:\a\_actions\actions\setup-dotnet\v4\externals\install-dotnet.ps1' -SkipNonVersionedFiles -Channel 8.0
+2026-09-21T22:51:17.8794584Z dotnet-install: Downloaded file https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-win-x64.zip size is 285157731 bytes.
+2026-09-21T22:51:17.8804201Z dotnet-install: Either downloaded or local package size can not be measured. One of them may be corrupted.
+2026-09-21T22:51:17.8832968Z dotnet-install: Extracting the archive.
+2026-09-21T22:51:37.2356810Z dotnet-install: Note that the script does not ensure your Windows version is supported during the installation.
+2026-09-21T22:51:37.2362821Z dotnet-install: To check the list of supported versions, go to https://learn.microsoft.com/dotnet/core/install/windows#supported-versions
+2026-09-21T22:51:37.2368972Z dotnet-install: Installed version is 8.0.425
+2026-09-21T22:51:37.2375826Z dotnet-install: Installation finished

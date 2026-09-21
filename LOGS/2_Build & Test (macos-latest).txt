@@ -1,0 +1,220 @@
+﻿2026-09-21T22:50:55.1718270Z Current runner version: '2.337.0'
+2026-09-21T22:50:55.1733840Z ##[group]Runner Image Provisioner
+2026-09-21T22:50:55.1734350Z Hosted Compute Agent
+2026-09-21T22:50:55.1734700Z Version: 20260828.587
+2026-09-21T22:50:55.1735100Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-21T22:50:55.1735580Z Build Date: 2026-08-28T16:44:25Z
+2026-09-21T22:50:55.1736010Z Worker ID: {97942011-dca6-4eeb-a017-b308732829ef}
+2026-09-21T22:50:55.1736450Z Azure Region: westus
+2026-09-21T22:50:55.1736810Z ##[endgroup]
+2026-09-21T22:50:55.1737680Z ##[group]Operating System
+2026-09-21T22:50:55.1738080Z macOS
+2026-09-21T22:50:55.1738410Z 26.6.2
+2026-09-21T22:50:55.1738770Z 25G83
+2026-09-21T22:50:55.1739100Z ##[endgroup]
+2026-09-21T22:50:55.1739450Z ##[group]Runner Image
+2026-09-21T22:50:55.1739840Z Image: macos-26-arm64
+2026-09-21T22:50:55.1740230Z Version: 20260907.0351.1
+2026-09-21T22:50:55.1741060Z Included Software: https://github.com/actions/runner-images/blob/macos-26-arm64/20260907.0351/images/macos/macos-26-arm64-Readme.md
+2026-09-21T22:50:55.1742120Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-26-arm64%2F20260907.0351
+2026-09-21T22:50:55.1742790Z ##[endgroup]
+2026-09-21T22:50:55.1743590Z ##[group]GITHUB_TOKEN Permissions
+2026-09-21T22:50:55.1744610Z Contents: read
+2026-09-21T22:50:55.1744980Z Metadata: read
+2026-09-21T22:50:55.1745340Z Packages: read
+2026-09-21T22:50:55.1745690Z ##[endgroup]
+2026-09-21T22:50:55.1747150Z Secret source: Actions
+2026-09-21T22:50:55.1747910Z Cache mode: write
+2026-09-21T22:50:55.1748380Z Prepare workflow directory
+2026-09-21T22:50:55.1996500Z Prepare all required actions
+2026-09-21T22:50:55.2036290Z Getting action download info
+2026-09-21T22:50:55.6038510Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-21T22:50:55.8920080Z Download action repository 'actions/setup-dotnet@v4' (SHA:67a3573c9a986a3f9c594539f4ab511d57bb3ce9)
+2026-09-21T22:50:56.5017700Z Complete job name: Build & Test (macos-latest)
+2026-09-21T22:50:56.5454410Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:50:56.5460470Z ##[group]Run actions/checkout@v4
+2026-09-21T22:50:56.5460930Z with:
+2026-09-21T22:50:56.5461260Z   repository: TYFALY/TrophyPrompt
+2026-09-21T22:50:56.5463700Z   token: ***
+2026-09-21T22:50:56.5464000Z   ssh-strict: true
+2026-09-21T22:50:56.5464310Z   ssh-user: git
+2026-09-21T22:50:56.5464630Z   persist-credentials: true
+2026-09-21T22:50:56.5464970Z   clean: true
+2026-09-21T22:50:56.5465290Z   sparse-checkout-cone-mode: true
+2026-09-21T22:50:56.5465650Z   fetch-depth: 1
+2026-09-21T22:50:56.5465950Z   fetch-tags: false
+2026-09-21T22:50:56.5466270Z   show-progress: true
+2026-09-21T22:50:56.5466590Z   lfs: false
+2026-09-21T22:50:56.5466910Z   submodules: false
+2026-09-21T22:50:56.5467240Z   set-safe-directory: true
+2026-09-21T22:50:56.5467600Z   allow-unsafe-pr-checkout: false
+2026-09-21T22:50:56.5468060Z ##[endgroup]
+2026-09-21T22:50:56.8837140Z Syncing repository: TYFALY/TrophyPrompt
+2026-09-21T22:50:56.8838770Z ##[group]Getting Git version info
+2026-09-21T22:50:56.8839480Z Working directory is '/Users/runner/work/TrophyPrompt/TrophyPrompt'
+2026-09-21T22:50:56.8840410Z [command]/opt/homebrew/bin/git version
+2026-09-21T22:50:56.9347380Z git version 2.55.0
+2026-09-21T22:50:56.9358420Z ##[endgroup]
+2026-09-21T22:50:56.9364960Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/2ab8e4d1-8149-4228-95e4-8a72e04c849d/.gitconfig'
+2026-09-21T22:50:56.9372420Z Temporarily overriding HOME='/Users/runner/work/_temp/2ab8e4d1-8149-4228-95e4-8a72e04c849d' before making global git config changes
+2026-09-21T22:50:56.9373530Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-21T22:50:56.9375960Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/TrophyPrompt/TrophyPrompt
+2026-09-21T22:50:56.9483120Z Deleting the contents of '/Users/runner/work/TrophyPrompt/TrophyPrompt'
+2026-09-21T22:50:56.9485770Z ##[group]Initializing the repository
+2026-09-21T22:50:56.9490080Z [command]/opt/homebrew/bin/git init /Users/runner/work/TrophyPrompt/TrophyPrompt
+2026-09-21T22:50:56.9699180Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-21T22:50:56.9700290Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-21T22:50:56.9701310Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-21T22:50:56.9702030Z hint: call:
+2026-09-21T22:50:56.9702450Z hint:
+2026-09-21T22:50:56.9702900Z hint: 	git config --global init.defaultBranch <name>
+2026-09-21T22:50:56.9703450Z hint:
+2026-09-21T22:50:56.9704040Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-21T22:50:56.9704850Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-21T22:50:56.9705520Z hint:
+2026-09-21T22:50:56.9705860Z hint: 	git branch -m <name>
+2026-09-21T22:50:56.9706240Z hint:
+2026-09-21T22:50:56.9706930Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-21T22:50:56.9707860Z Initialized empty Git repository in /Users/runner/work/TrophyPrompt/TrophyPrompt/.git/
+2026-09-21T22:50:56.9709660Z [command]/opt/homebrew/bin/git remote add origin https://github.com/TYFALY/TrophyPrompt
+2026-09-21T22:50:56.9782550Z ##[endgroup]
+2026-09-21T22:50:56.9783660Z ##[group]Disabling automatic garbage collection
+2026-09-21T22:50:56.9785810Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-09-21T22:50:56.9863200Z ##[endgroup]
+2026-09-21T22:50:56.9864070Z ##[group]Setting up auth
+2026-09-21T22:50:56.9864940Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-21T22:50:56.9927000Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-21T22:50:57.0783090Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-21T22:50:57.0846530Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-21T22:50:57.1604780Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-21T22:50:57.1667050Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-21T22:50:57.3260070Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-21T22:50:57.3265070Z ##[endgroup]
+2026-09-21T22:50:57.3266300Z ##[group]Fetching the repository
+2026-09-21T22:50:57.3268290Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +73a307f67252deace51107d2e49b28bec54a6c10:refs/remotes/origin/main
+2026-09-21T22:50:58.1183820Z From https://github.com/TYFALY/TrophyPrompt
+2026-09-21T22:50:58.1186490Z  * [new ref]         73a307f67252deace51107d2e49b28bec54a6c10 -> origin/main
+2026-09-21T22:50:58.1189170Z ##[endgroup]
+2026-09-21T22:50:58.1190800Z ##[group]Determining the checkout info
+2026-09-21T22:50:58.1191770Z ##[endgroup]
+2026-09-21T22:50:58.1192530Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-09-21T22:50:58.1292480Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-21T22:50:58.1340810Z ##[group]Checking out the ref
+2026-09-21T22:50:58.1342570Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-21T22:50:58.1555770Z Switched to a new branch 'main'
+2026-09-21T22:50:58.1563890Z branch 'main' set up to track 'origin/main'.
+2026-09-21T22:50:58.1566820Z ##[endgroup]
+2026-09-21T22:50:58.1645190Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-09-21T22:50:58.1708380Z 73a307f67252deace51107d2e49b28bec54a6c10
+2026-09-21T22:50:58.1958470Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:50:58.1962890Z ##[group]Run actions/setup-dotnet@v4
+2026-09-21T22:50:58.1963690Z with:
+2026-09-21T22:50:58.1964290Z   dotnet-version: 8.0.x
+2026-09-21T22:50:58.1965000Z   cache: false
+2026-09-21T22:50:58.1965620Z ##[endgroup]
+2026-09-21T22:50:58.3524030Z (node:2304) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-21T22:50:58.3527110Z [command]/Users/runner/work/_actions/actions/setup-dotnet/v4/externals/install-dotnet.sh --skip-non-versioned-files --runtime dotnet --channel LTS
+2026-09-21T22:50:58.3529770Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-21T22:50:59.2271400Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-osx-arm64.tar.gz
+2026-09-21T22:51:00.6839180Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-osx-arm64.tar.gz size is 33249724 bytes.
+2026-09-21T22:51:00.6940890Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-osx-arm64.tar.gz
+2026-09-21T22:51:01.1522390Z dotnet-install: Downloaded file size is 33249724 bytes.
+2026-09-21T22:51:01.1524490Z dotnet-install: The remote and local file sizes are equal.
+2026-09-21T22:51:01.1740480Z dotnet-install: Installed version is 10.0.12
+2026-09-21T22:51:01.1823510Z dotnet-install: Adding to current process PATH: `/Users/runner/.dotnet`. Note: This change will be visible only when sourcing script.
+2026-09-21T22:51:01.1824750Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-09-21T22:51:01.1825870Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-09-21T22:51:01.1826610Z dotnet-install: Installation finished successfully.
+2026-09-21T22:51:01.1842500Z [command]/Users/runner/work/_actions/actions/setup-dotnet/v4/externals/install-dotnet.sh --skip-non-versioned-files --channel 8.0
+2026-09-21T22:51:02.0872780Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-osx-arm64.tar.gz
+2026-09-21T22:51:07.8989260Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-osx-arm64.tar.gz size is 209896438 bytes.
+2026-09-21T22:51:07.9052230Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-osx-arm64.tar.gz
+2026-09-21T22:51:13.1874880Z dotnet-install: Downloaded file size is 209896438 bytes.
+2026-09-21T22:51:13.1876940Z dotnet-install: The remote and local file sizes are equal.
+2026-09-21T22:51:13.4746820Z dotnet-install: Installed version is 8.0.425
+2026-09-21T22:51:13.4824200Z dotnet-install: Adding to current process PATH: `/Users/runner/.dotnet`. Note: This change will be visible only when sourcing script.
+2026-09-21T22:51:13.4825690Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-09-21T22:51:13.4827960Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-09-21T22:51:13.4828820Z dotnet-install: Installation finished successfully.
+2026-09-21T22:51:13.5166080Z ##[group]Run dotnet restore
+2026-09-21T22:51:13.5166520Z [36;1mdotnet restore[0m
+2026-09-21T22:51:13.5225850Z shell: /bin/bash -e {0}
+2026-09-21T22:51:13.5226230Z env:
+2026-09-21T22:51:13.5226590Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-09-21T22:51:13.5226920Z ##[endgroup]
+2026-09-21T22:51:15.2593800Z   Determining projects to restore...
+2026-09-21T22:51:19.1925990Z   Restored /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/pfdtool/pfdtool.csproj (in 3.68 sec).
+2026-09-21T22:51:19.1928520Z   Restored /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/BigEndianTool/BigEndianTool.csproj (in 3.68 sec).
+2026-09-21T22:51:19.1932170Z   Restored /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/TROPHYParser/TROPHYParser.csproj (in 3.68 sec).
+2026-09-21T22:51:22.7883130Z   Restored /Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj (in 3.59 sec).
+2026-09-21T22:51:22.8698090Z ##[group]Run dotnet build --configuration Release --no-restore
+2026-09-21T22:51:22.8699210Z [36;1mdotnet build --configuration Release --no-restore[0m
+2026-09-21T22:51:22.8757890Z shell: /bin/bash -e {0}
+2026-09-21T22:51:22.8758440Z env:
+2026-09-21T22:51:22.8758700Z   DOTNET_ROOT: /Users/runner/.dotnet
+2026-09-21T22:51:22.8759050Z ##[endgroup]
+2026-09-21T22:51:24.0142280Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "TROPHYParser". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:24.0246380Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "BigEndianTool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:24.0350300Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "pfdtool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.4797490Z CSC : warning CS2008: No source files specified. [/Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/pfdtool/pfdtool.csproj]
+2026-09-21T22:51:25.5570940Z   pfdtool -> /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/pfdtool/bin/Release/net8.0/pfdtool.dll
+2026-09-21T22:51:25.6093100Z   BigEndianTool -> /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/BigEndianTool/bin/Release/net8.0/BigEndianTool.dll
+2026-09-21T22:51:25.7111820Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(21,7): error CS0246: The type or namespace name 'TROPHYParser' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7120200Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/TrophyItemViewModel.cs(7,7): error CS0246: The type or namespace name 'TROPHYParser' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7123120Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(29,17): error CS0246: The type or namespace name 'TROPCONF' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7125870Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(30,17): error CS0246: The type or namespace name 'TROPTRNS' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7140510Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(31,17): error CS0246: The type or namespace name 'TROPUSR' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7144810Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(99,16): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7149500Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(382,43): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7153540Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(388,43): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7157390Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(388,63): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7161200Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(393,42): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7165480Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(399,42): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7169400Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(399,62): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:25.7172950Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/TrophyItemViewModel.cs(26,17): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0213470Z   TROPHYParser -> /Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/TROPHYParser/bin/Release/net8.0/TROPHYParser.dll
+2026-09-21T22:51:26.0439440Z 
+2026-09-21T22:51:26.0442740Z Build FAILED.
+2026-09-21T22:51:26.0443080Z 
+2026-09-21T22:51:26.0444610Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "TROPHYParser". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0447910Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "BigEndianTool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0450590Z /Users/runner/.dotnet/sdk/10.0.400/Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "pfdtool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0452420Z CSC : warning CS2008: No source files specified. [/Users/runner/work/TrophyPrompt/TrophyPrompt/vendor/pfdtool/pfdtool.csproj]
+2026-09-21T22:51:26.0455630Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(21,7): error CS0246: The type or namespace name 'TROPHYParser' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0459160Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/TrophyItemViewModel.cs(7,7): error CS0246: The type or namespace name 'TROPHYParser' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0462610Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(29,17): error CS0246: The type or namespace name 'TROPCONF' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0468750Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(30,17): error CS0246: The type or namespace name 'TROPTRNS' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0471800Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/MainViewModel.cs(31,17): error CS0246: The type or namespace name 'TROPUSR' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0475570Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(99,16): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0479340Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(382,43): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0483390Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(388,43): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0487510Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(388,63): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0508470Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(393,42): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0512390Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(399,42): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0516430Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/obj/Release/net8.0/CommunityToolkit.Mvvm.SourceGenerators/CommunityToolkit.Mvvm.SourceGenerators.ObservablePropertyGenerator/TrophyPrompt.ViewModels.TrophyItemViewModel.g.cs(399,62): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0519800Z ##[error]/Users/runner/work/TrophyPrompt/TrophyPrompt/ViewModels/TrophyItemViewModel.cs(26,17): error CS0246: The type or namespace name 'TropType' could not be found (are you missing a using directive or an assembly reference?) [/Users/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj]
+2026-09-21T22:51:26.0521180Z     4 Warning(s)
+2026-09-21T22:51:26.0521460Z     13 Error(s)
+2026-09-21T22:51:26.0521580Z 
+2026-09-21T22:51:26.0521750Z Time Elapsed 00:00:02.81
+2026-09-21T22:51:26.0618570Z ##[error]Process completed with exit code 1.
+2026-09-21T22:51:26.0750490Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:51:26.0751540Z Post job cleanup.
+2026-09-21T22:51:26.2027260Z [command]/opt/homebrew/bin/git version
+2026-09-21T22:51:26.2292270Z git version 2.55.0
+2026-09-21T22:51:26.2317790Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/54808797-97e6-4cb0-8fe1-50d3404ec5c1/.gitconfig'
+2026-09-21T22:51:26.2326730Z Temporarily overriding HOME='/Users/runner/work/_temp/54808797-97e6-4cb0-8fe1-50d3404ec5c1' before making global git config changes
+2026-09-21T22:51:26.2327940Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-21T22:51:26.2329100Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/TrophyPrompt/TrophyPrompt
+2026-09-21T22:51:26.2441420Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-21T22:51:26.2511280Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-21T22:51:26.3375120Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-21T22:51:26.3430870Z http.https://github.com/.extraheader
+2026-09-21T22:51:26.3443090Z [command]/opt/homebrew/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-21T22:51:26.3550140Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-21T22:51:26.4333450Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-21T22:51:26.4405110Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-21T22:51:26.5941510Z Cleaning up orphan processes
+2026-09-21T22:51:26.8306320Z Terminate orphan process: pid (3254) (VBCSCompiler)
+2026-09-21T22:51:26.8653260Z Terminate orphan process: pid (3244) (dotnet)
+2026-09-21T22:51:27.1463740Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-dotnet@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

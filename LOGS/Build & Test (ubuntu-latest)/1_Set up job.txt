@@ -1,0 +1,33 @@
+﻿2026-09-21T22:50:51.5435483Z Current runner version: '2.337.0'
+2026-09-21T22:50:51.5462163Z ##[group]Runner Image Provisioner
+2026-09-21T22:50:51.5463079Z Hosted Compute Agent
+2026-09-21T22:50:51.5463690Z Version: 20260828.587
+2026-09-21T22:50:51.5464459Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-21T22:50:51.5465206Z Build Date: 2026-08-28T16:44:25Z
+2026-09-21T22:50:51.5465918Z Worker ID: {e572159e-0a79-4120-958b-db4c63f1afbe}
+2026-09-21T22:50:51.5466934Z Azure Region: westus2
+2026-09-21T22:50:51.5467526Z ##[endgroup]
+2026-09-21T22:50:51.5469308Z ##[group]Operating System
+2026-09-21T22:50:51.5470003Z Ubuntu
+2026-09-21T22:50:51.5470509Z 24.04.5
+2026-09-21T22:50:51.5471114Z LTS
+2026-09-21T22:50:51.5471634Z ##[endgroup]
+2026-09-21T22:50:51.5472251Z ##[group]Runner Image
+2026-09-21T22:50:51.5472855Z Image: ubuntu-24.04
+2026-09-21T22:50:51.5473432Z Version: 20260907.300.1
+2026-09-21T22:50:51.5474562Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-21T22:50:51.5476845Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-21T22:50:51.5477880Z ##[endgroup]
+2026-09-21T22:50:51.5479132Z ##[group]GITHUB_TOKEN Permissions
+2026-09-21T22:50:51.5481199Z Contents: read
+2026-09-21T22:50:51.5481859Z Metadata: read
+2026-09-21T22:50:51.5482507Z Packages: read
+2026-09-21T22:50:51.5483103Z ##[endgroup]
+2026-09-21T22:50:51.5485601Z Secret source: Actions
+2026-09-21T22:50:51.5486913Z Cache mode: write
+2026-09-21T22:50:51.5487856Z Prepare workflow directory
+2026-09-21T22:50:51.5853114Z Prepare all required actions
+2026-09-21T22:50:51.5925887Z Getting action download info
+2026-09-21T22:50:51.9398974Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-21T22:50:52.0482014Z Download action repository 'actions/setup-dotnet@v4' (SHA:67a3573c9a986a3f9c594539f4ab511d57bb3ce9)
+2026-09-21T22:50:52.4606474Z Complete job name: Build & Test (ubuntu-latest)

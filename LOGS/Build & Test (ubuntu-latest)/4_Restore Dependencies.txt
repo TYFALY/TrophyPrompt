@@ -1,0 +1,11 @@
+﻿2026-09-21T22:51:03.9534143Z ##[group]Run dotnet restore
+2026-09-21T22:51:03.9534752Z [36;1mdotnet restore[0m
+2026-09-21T22:51:03.9579380Z shell: /usr/bin/bash -e {0}
+2026-09-21T22:51:03.9579677Z env:
+2026-09-21T22:51:03.9579893Z   DOTNET_ROOT: /usr/share/dotnet
+2026-09-21T22:51:03.9580169Z ##[endgroup]
+2026-09-21T22:51:07.1541512Z   Determining projects to restore...
+2026-09-21T22:51:11.7046201Z   Restored /home/runner/work/TrophyPrompt/TrophyPrompt/vendor/TROPHYParser/TROPHYParser.csproj (in 3.64 sec).
+2026-09-21T22:51:11.7048165Z   Restored /home/runner/work/TrophyPrompt/TrophyPrompt/vendor/BigEndianTool/BigEndianTool.csproj (in 3.64 sec).
+2026-09-21T22:51:11.7049855Z   Restored /home/runner/work/TrophyPrompt/TrophyPrompt/vendor/pfdtool/pfdtool.csproj (in 3.64 sec).
+2026-09-21T22:51:12.4655844Z   Restored /home/runner/work/TrophyPrompt/TrophyPrompt/TrophyPrompt.csproj (in 4.42 sec).

@@ -33,20 +33,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="TROPHYParser">
-      <HintPath>vendor/TROPHYParser/bin/$(Configuration)/net8.0/TROPHYParser.dll</HintPath>
-    </Reference>
-    <Reference Include="BigEndianTool">
-      <HintPath>vendor/BigEndianTool/bin/$(Configuration)/net8.0/BigEndianTool.dll</HintPath>
-    </Reference>
-    <Reference Include="pfdtool">
-      <HintPath>vendor/pfdtool/bin/$(Configuration)/net8.0/pfdtool.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="vendor/TROPHYParser/TROPHYParser.csproj" />
+    <ProjectReference Include="vendor/BigEndianTool/BigEndianTool.csproj" />
+    <ProjectReference Include="vendor/pfdtool/pfdtool.csproj" />
   </ItemGroup>
-
-  <Target Name="BuildVendorProjects" BeforeTargets="Build">
-    <MSBuild Projects="vendor/TROPHYParser/TROPHYParser.csproj;vendor/BigEndianTool/BigEndianTool.csproj;vendor/pfdtool/pfdtool.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
-  </Target>
 
   <Target Name="CopyPfdtoolNativeFiles" AfterTargets="Build">
     <ItemGroup>

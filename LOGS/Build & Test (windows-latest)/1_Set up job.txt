@@ -1,0 +1,33 @@
+﻿2026-09-21T22:50:54.0506023Z Current runner version: '2.337.0'
+2026-09-21T22:50:54.0768298Z ##[group]Runner Image Provisioner
+2026-09-21T22:50:54.0769647Z Hosted Compute Agent
+2026-09-21T22:50:54.0770627Z Version: 20260828.587
+2026-09-21T22:50:54.0771728Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-21T22:50:54.0773009Z Build Date: 2026-08-28T16:44:25Z
+2026-09-21T22:50:54.0774220Z Worker ID: {8fc16c42-a7e3-4e59-8b9e-5b480962a079}
+2026-09-21T22:50:54.0775418Z Azure Region: westus2
+2026-09-21T22:50:54.0776357Z ##[endgroup]
+2026-09-21T22:50:54.0778528Z ##[group]Operating System
+2026-09-21T22:50:54.0779632Z Microsoft Windows Server 2025
+2026-09-21T22:50:54.0780706Z 10.0.26100
+2026-09-21T22:50:54.0781539Z Datacenter
+2026-09-21T22:50:54.0782439Z ##[endgroup]
+2026-09-21T22:50:54.0783371Z ##[group]Runner Image
+2026-09-21T22:50:54.0784399Z Image: windows-2025-vs2026
+2026-09-21T22:50:54.0785436Z Version: 20260907.229.1
+2026-09-21T22:50:54.0787847Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260907.229/images/windows/Windows2025-VS2026-Readme.md
+2026-09-21T22:50:54.0791312Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260907.229
+2026-09-21T22:50:54.0793081Z ##[endgroup]
+2026-09-21T22:50:54.0795159Z ##[group]GITHUB_TOKEN Permissions
+2026-09-21T22:50:54.0798809Z Contents: read
+2026-09-21T22:50:54.0800099Z Metadata: read
+2026-09-21T22:50:54.0801065Z Packages: read
+2026-09-21T22:50:54.0801871Z ##[endgroup]
+2026-09-21T22:50:54.0804993Z Secret source: Actions
+2026-09-21T22:50:54.0806393Z Cache mode: write
+2026-09-21T22:50:54.0807663Z Prepare workflow directory
+2026-09-21T22:50:54.1765312Z Prepare all required actions
+2026-09-21T22:50:54.1844036Z Getting action download info
+2026-09-21T22:50:54.5210677Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-21T22:50:54.7137698Z Download action repository 'actions/setup-dotnet@v4' (SHA:67a3573c9a986a3f9c594539f4ab511d57bb3ce9)
+2026-09-21T22:50:55.5490836Z Complete job name: Build & Test (windows-latest)

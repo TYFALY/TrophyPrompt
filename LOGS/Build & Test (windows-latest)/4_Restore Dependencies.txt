@@ -1,0 +1,11 @@
+﻿2026-09-21T22:51:37.3149929Z ##[group]Run dotnet restore
+2026-09-21T22:51:37.3150310Z [36;1mdotnet restore[0m
+2026-09-21T22:51:37.3709557Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-21T22:51:37.3709992Z env:
+2026-09-21T22:51:37.3710213Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-09-21T22:51:37.3710516Z ##[endgroup]
+2026-09-21T22:51:42.1359362Z   Determining projects to restore...
+2026-09-21T22:52:04.5186543Z   Restored D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj (in 21.46 sec).
+2026-09-21T22:52:05.3668424Z   Restored D:\a\TrophyPrompt\TrophyPrompt\vendor\BigEndianTool\BigEndianTool.csproj (in 22.32 sec).
+2026-09-21T22:52:05.3669776Z   Restored D:\a\TrophyPrompt\TrophyPrompt\vendor\pfdtool\pfdtool.csproj (in 22.32 sec).
+2026-09-21T22:52:05.3683443Z   Restored D:\a\TrophyPrompt\TrophyPrompt\vendor\TROPHYParser\TROPHYParser.csproj (in 22.33 sec).

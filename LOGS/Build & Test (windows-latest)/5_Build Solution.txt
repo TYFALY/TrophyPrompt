@@ -1,0 +1,21 @@
+﻿2026-09-21T22:52:05.5369557Z ##[group]Run dotnet build --configuration Release --no-restore
+2026-09-21T22:52:05.5370125Z [36;1mdotnet build --configuration Release --no-restore[0m
+2026-09-21T22:52:05.5450200Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-09-21T22:52:05.5450777Z env:
+2026-09-21T22:52:05.5451095Z   DOTNET_ROOT: C:\Program Files\dotnet
+2026-09-21T22:52:05.5451515Z ##[endgroup]
+2026-09-21T22:52:07.8294230Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "TROPHYParser". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:07.8338674Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "BigEndianTool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:07.8489568Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "pfdtool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:08.1074728Z Attempting to cancel the build...
+2026-09-21T22:52:08.6227775Z 
+2026-09-21T22:52:08.6257593Z Build FAILED.
+2026-09-21T22:52:08.6270874Z 
+2026-09-21T22:52:08.6274990Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "TROPHYParser". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:08.6283261Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "BigEndianTool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:08.6291139Z C:\Program Files\dotnet\sdk\10.0.400\Microsoft.Common.CurrentVersion.targets(2453,5): warning MSB3245: Could not resolve this reference. Could not locate the assembly "pfdtool". Check to make sure the assembly exists on disk. If this reference is required by your code, you may get compilation errors. [D:\a\TrophyPrompt\TrophyPrompt\TrophyPrompt.csproj]
+2026-09-21T22:52:08.6294918Z     3 Warning(s)
+2026-09-21T22:52:08.6295914Z     0 Error(s)
+2026-09-21T22:52:08.6296513Z 
+2026-09-21T22:52:08.6297054Z Time Elapsed 00:00:02.39
+2026-09-21T22:52:09.0294757Z ##[error]The operation was canceled.

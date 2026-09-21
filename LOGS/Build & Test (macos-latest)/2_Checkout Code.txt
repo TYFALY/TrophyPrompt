@@ -1,0 +1,75 @@
+﻿2026-09-21T22:50:56.5454390Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:50:56.5460460Z ##[group]Run actions/checkout@v4
+2026-09-21T22:50:56.5460930Z with:
+2026-09-21T22:50:56.5461260Z   repository: TYFALY/TrophyPrompt
+2026-09-21T22:50:56.5463690Z   token: ***
+2026-09-21T22:50:56.5464000Z   ssh-strict: true
+2026-09-21T22:50:56.5464310Z   ssh-user: git
+2026-09-21T22:50:56.5464630Z   persist-credentials: true
+2026-09-21T22:50:56.5464970Z   clean: true
+2026-09-21T22:50:56.5465290Z   sparse-checkout-cone-mode: true
+2026-09-21T22:50:56.5465650Z   fetch-depth: 1
+2026-09-21T22:50:56.5465950Z   fetch-tags: false
+2026-09-21T22:50:56.5466270Z   show-progress: true
+2026-09-21T22:50:56.5466580Z   lfs: false
+2026-09-21T22:50:56.5466880Z   submodules: false
+2026-09-21T22:50:56.5467240Z   set-safe-directory: true
+2026-09-21T22:50:56.5467590Z   allow-unsafe-pr-checkout: false
+2026-09-21T22:50:56.5468060Z ##[endgroup]
+2026-09-21T22:50:56.8837030Z Syncing repository: TYFALY/TrophyPrompt
+2026-09-21T22:50:56.8838760Z ##[group]Getting Git version info
+2026-09-21T22:50:56.8839480Z Working directory is '/Users/runner/work/TrophyPrompt/TrophyPrompt'
+2026-09-21T22:50:56.8840410Z [command]/opt/homebrew/bin/git version
+2026-09-21T22:50:56.9347320Z git version 2.55.0
+2026-09-21T22:50:56.9358400Z ##[endgroup]
+2026-09-21T22:50:56.9364930Z Copying '/Users/runner/.gitconfig' to '/Users/runner/work/_temp/2ab8e4d1-8149-4228-95e4-8a72e04c849d/.gitconfig'
+2026-09-21T22:50:56.9372390Z Temporarily overriding HOME='/Users/runner/work/_temp/2ab8e4d1-8149-4228-95e4-8a72e04c849d' before making global git config changes
+2026-09-21T22:50:56.9373530Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-21T22:50:56.9375840Z [command]/opt/homebrew/bin/git config --global --add safe.directory /Users/runner/work/TrophyPrompt/TrophyPrompt
+2026-09-21T22:50:56.9483040Z Deleting the contents of '/Users/runner/work/TrophyPrompt/TrophyPrompt'
+2026-09-21T22:50:56.9485760Z ##[group]Initializing the repository
+2026-09-21T22:50:56.9490060Z [command]/opt/homebrew/bin/git init /Users/runner/work/TrophyPrompt/TrophyPrompt
+2026-09-21T22:50:56.9699070Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-21T22:50:56.9700270Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-21T22:50:56.9701300Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-21T22:50:56.9702030Z hint: call:
+2026-09-21T22:50:56.9702450Z hint:
+2026-09-21T22:50:56.9702890Z hint: 	git config --global init.defaultBranch <name>
+2026-09-21T22:50:56.9703450Z hint:
+2026-09-21T22:50:56.9704040Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-21T22:50:56.9704800Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-21T22:50:56.9705510Z hint:
+2026-09-21T22:50:56.9705860Z hint: 	git branch -m <name>
+2026-09-21T22:50:56.9706240Z hint:
+2026-09-21T22:50:56.9706930Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-21T22:50:56.9707860Z Initialized empty Git repository in /Users/runner/work/TrophyPrompt/TrophyPrompt/.git/
+2026-09-21T22:50:56.9709650Z [command]/opt/homebrew/bin/git remote add origin https://github.com/TYFALY/TrophyPrompt
+2026-09-21T22:50:56.9782460Z ##[endgroup]
+2026-09-21T22:50:56.9783650Z ##[group]Disabling automatic garbage collection
+2026-09-21T22:50:56.9785800Z [command]/opt/homebrew/bin/git config --local gc.auto 0
+2026-09-21T22:50:56.9863130Z ##[endgroup]
+2026-09-21T22:50:56.9864070Z ##[group]Setting up auth
+2026-09-21T22:50:56.9864940Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-21T22:50:56.9926140Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-21T22:50:57.0783010Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-21T22:50:57.0846460Z [command]/opt/homebrew/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-21T22:50:57.1604700Z [command]/opt/homebrew/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-21T22:50:57.1666970Z [command]/opt/homebrew/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-21T22:50:57.3260000Z [command]/opt/homebrew/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-21T22:50:57.3265010Z ##[endgroup]
+2026-09-21T22:50:57.3266290Z ##[group]Fetching the repository
+2026-09-21T22:50:57.3268280Z [command]/opt/homebrew/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +73a307f67252deace51107d2e49b28bec54a6c10:refs/remotes/origin/main
+2026-09-21T22:50:58.1183740Z From https://github.com/TYFALY/TrophyPrompt
+2026-09-21T22:50:58.1186480Z  * [new ref]         73a307f67252deace51107d2e49b28bec54a6c10 -> origin/main
+2026-09-21T22:50:58.1189170Z ##[endgroup]
+2026-09-21T22:50:58.1190770Z ##[group]Determining the checkout info
+2026-09-21T22:50:58.1191770Z ##[endgroup]
+2026-09-21T22:50:58.1192530Z [command]/opt/homebrew/bin/git sparse-checkout disable
+2026-09-21T22:50:58.1292410Z [command]/opt/homebrew/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-21T22:50:58.1340740Z ##[group]Checking out the ref
+2026-09-21T22:50:58.1342560Z [command]/opt/homebrew/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-21T22:50:58.1555680Z Switched to a new branch 'main'
+2026-09-21T22:50:58.1563870Z branch 'main' set up to track 'origin/main'.
+2026-09-21T22:50:58.1566810Z ##[endgroup]
+2026-09-21T22:50:58.1645150Z [command]/opt/homebrew/bin/git log -1 --format=%H
+2026-09-21T22:50:58.1708340Z 73a307f67252deace51107d2e49b28bec54a6c10

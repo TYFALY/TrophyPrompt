@@ -1,0 +1,30 @@
+﻿2026-09-21T22:50:53.2057551Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-21T22:50:53.2063803Z ##[group]Run actions/setup-dotnet@v4
+2026-09-21T22:50:53.2064910Z with:
+2026-09-21T22:50:53.2065720Z   dotnet-version: 8.0.x
+2026-09-21T22:50:53.2066922Z   cache: false
+2026-09-21T22:50:53.2067759Z ##[endgroup]
+2026-09-21T22:50:53.3495051Z (node:2251) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-21T22:50:53.3500048Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-21T22:50:53.3522763Z [command]/home/runner/work/_actions/actions/setup-dotnet/v4/externals/install-dotnet.sh --skip-non-versioned-files --runtime dotnet --channel LTS
+2026-09-21T22:50:53.9705786Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz
+2026-09-21T22:50:54.7513297Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz size is 36638192 bytes.
+2026-09-21T22:50:54.7520731Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.12/dotnet-runtime-10.0.12-linux-x64.tar.gz
+2026-09-21T22:50:55.4149642Z dotnet-install: Downloaded file size is 36638192 bytes.
+2026-09-21T22:50:55.4154264Z dotnet-install: The remote and local file sizes are equal.
+2026-09-21T22:50:55.4446897Z dotnet-install: Installed version is 10.0.12
+2026-09-21T22:50:55.4504925Z dotnet-install: Adding to current process PATH: `/usr/share/dotnet`. Note: This change will be visible only when sourcing script.
+2026-09-21T22:50:55.4507223Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-09-21T22:50:55.4537741Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-09-21T22:50:55.4539726Z dotnet-install: Installation finished successfully.
+2026-09-21T22:50:55.4541196Z [command]/home/runner/work/_actions/actions/setup-dotnet/v4/externals/install-dotnet.sh --skip-non-versioned-files --channel 8.0
+2026-09-21T22:50:56.0404870Z dotnet-install: Attempting to download using aka.ms link https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz
+2026-09-21T22:50:58.5078724Z dotnet-install: Remote file https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz size is 216833108 bytes.
+2026-09-21T22:50:58.5080103Z dotnet-install: Extracting archive from https://builds.dotnet.microsoft.com/dotnet/Sdk/8.0.425/dotnet-sdk-8.0.425-linux-x64.tar.gz
+2026-09-21T22:51:03.5860117Z dotnet-install: Downloaded file size is 216833108 bytes.
+2026-09-21T22:51:03.5861911Z dotnet-install: The remote and local file sizes are equal.
+2026-09-21T22:51:03.9224585Z dotnet-install: Installed version is 8.0.425
+2026-09-21T22:51:03.9283296Z dotnet-install: Adding to current process PATH: `/usr/share/dotnet`. Note: This change will be visible only when sourcing script.
+2026-09-21T22:51:03.9284903Z dotnet-install: Note that the script does not resolve dependencies during installation.
+2026-09-21T22:51:03.9307818Z dotnet-install: To check the list of dependencies, go to https://learn.microsoft.com/dotnet/core/install, select your operating system and check the "Dependencies" section.
+2026-09-21T22:51:03.9309191Z dotnet-install: Installation finished successfully.

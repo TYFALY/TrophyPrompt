@@ -1,0 +1,33 @@
+﻿2026-09-21T22:50:55.1717280Z Current runner version: '2.337.0'
+2026-09-21T22:50:55.1733820Z ##[group]Runner Image Provisioner
+2026-09-21T22:50:55.1734350Z Hosted Compute Agent
+2026-09-21T22:50:55.1734700Z Version: 20260828.587
+2026-09-21T22:50:55.1735100Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-21T22:50:55.1735580Z Build Date: 2026-08-28T16:44:25Z
+2026-09-21T22:50:55.1736000Z Worker ID: {97942011-dca6-4eeb-a017-b308732829ef}
+2026-09-21T22:50:55.1736450Z Azure Region: westus
+2026-09-21T22:50:55.1736810Z ##[endgroup]
+2026-09-21T22:50:55.1737670Z ##[group]Operating System
+2026-09-21T22:50:55.1738080Z macOS
+2026-09-21T22:50:55.1738410Z 26.6.2
+2026-09-21T22:50:55.1738760Z 25G83
+2026-09-21T22:50:55.1739100Z ##[endgroup]
+2026-09-21T22:50:55.1739450Z ##[group]Runner Image
+2026-09-21T22:50:55.1739840Z Image: macos-26-arm64
+2026-09-21T22:50:55.1740230Z Version: 20260907.0351.1
+2026-09-21T22:50:55.1740970Z Included Software: https://github.com/actions/runner-images/blob/macos-26-arm64/20260907.0351/images/macos/macos-26-arm64-Readme.md
+2026-09-21T22:50:55.1742120Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-26-arm64%2F20260907.0351
+2026-09-21T22:50:55.1742790Z ##[endgroup]
+2026-09-21T22:50:55.1743590Z ##[group]GITHUB_TOKEN Permissions
+2026-09-21T22:50:55.1744600Z Contents: read
+2026-09-21T22:50:55.1744980Z Metadata: read
+2026-09-21T22:50:55.1745340Z Packages: read
+2026-09-21T22:50:55.1745690Z ##[endgroup]
+2026-09-21T22:50:55.1747140Z Secret source: Actions
+2026-09-21T22:50:55.1747910Z Cache mode: write
+2026-09-21T22:50:55.1748370Z Prepare workflow directory
+2026-09-21T22:50:55.1996460Z Prepare all required actions
+2026-09-21T22:50:55.2036200Z Getting action download info
+2026-09-21T22:50:55.6038480Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-21T22:50:55.8919910Z Download action repository 'actions/setup-dotnet@v4' (SHA:67a3573c9a986a3f9c594539f4ab511d57bb3ce9)
+2026-09-21T22:50:56.5017610Z Complete job name: Build & Test (macos-latest)
