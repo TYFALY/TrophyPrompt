@@ -1,6 +1,8 @@
+# <img width="3072" height="1376" alt="BannerLogo" src="https://github.com/user-attachments/assets/4e8a811a-0d18-4914-9b9c-e270c1aed014" />
 # 🏆 TrophyPrompt
 
 PS3 trophy timestamp editor for Windows. Open a trophy folder, export it to JSON, let an LLM fill in realistic unlock times, import it back, save. That is the whole program.
+
 
 Built with Avalonia 11 on .NET 8, ported from [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood).
 
