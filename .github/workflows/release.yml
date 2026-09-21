@@ -39,7 +39,7 @@ jobs:
 
       - name: Publish Binary
         run: |
-          dotnet publish -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true -o ./publish
+          dotnet publish TrophyPrompt.csproj -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true -o ./publish
 
       - name: Package Release Asset (Unix)
         if: matrix.os != 'windows-latest'
