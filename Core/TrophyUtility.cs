@@ -22,14 +22,64 @@ namespace TrophyPrompt.Core
             return "pfdtool";
         }
 
+        // Windows ships flatz's original pfdtool.exe; macOS/Linux releases ship a
+        // native build of the same tool (github.com/bucanero/pfd_sfo_tools).
+        public static string ToolFileName
+        {
+            get { return OperatingSystem.IsWindows() ? "pfdtool.exe" : "pfdtool"; }
+        }
+
         private static string ToolApp()
         {
-            string fromBase = Path.Combine(AppContext.BaseDirectory, "pfdtool", "pfdtool.exe");
-            if (File.Exists(fromBase))
+            return Path.Combine(ToolDirectory(), ToolFileName);
+        }
+
+        private static bool _unixToolPrepared;
+
+        // Archives and downloads can drop the executable bit, and macOS tags
+        // downloaded files with a quarantine flag that blocks launching them.
+        private static void PrepareUnixTool(string app)
+        {
+            if (OperatingSystem.IsWindows() || _unixToolPrepared)
             {
-                return fromBase;
+                return;
             }
-            return Path.Combine("pfdtool", "pfdtool.exe");
+            _unixToolPrepared = true;
+            try
+            {
+                UnixFileMode mode = File.GetUnixFileMode(app);
+                UnixFileMode exec = UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute;
+                if ((mode & UnixFileMode.UserExecute) == 0)
+                {
+                    File.SetUnixFileMode(app, mode | exec);
+                }
+            }
+            catch
+            {
+            }
+            if (OperatingSystem.IsMacOS())
+            {
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo("/usr/bin/xattr")
+                    {
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                    };
+                    psi.ArgumentList.Add("-d");
+                    psi.ArgumentList.Add("com.apple.quarantine");
+                    psi.ArgumentList.Add(app);
+                    using (var p = System.Diagnostics.Process.Start(psi))
+                    {
+                        p?.WaitForExit(5000);
+                    }
+                }
+                catch
+                {
+                }
+            }
         }
 
         public static string ProfilesDirectory()
@@ -46,13 +96,17 @@ namespace TrophyPrompt.Core
         // concatenation), drains stdout/stderr concurrently so a chatty tool can
         // never deadlock on a full pipe, and fails loudly on a non-zero exit code
         // instead of silently copying half-written files back to the user.
-        private static string RunPfdtool(bool useToolDirectory, params string[] args)
+        private static string RunPfdtool(params string[] args)
         {
             string app = ToolApp();
             if (!File.Exists(app))
             {
-                throw new FileNotFoundException("pfdtool.exe was not found next to TrophyPrompt. Re-download the release or rebuild the project.", app);
+                throw new FileNotFoundException(ToolFileName + " was not found in the pfdtool folder next to TrophyPrompt. " +
+                    (OperatingSystem.IsWindows()
+                        ? "Re-download the release or rebuild the project."
+                        : "Use a release download, or build pfdtool for this platform from github.com/bucanero/pfd_sfo_tools and put it there."), app);
             }
+            PrepareUnixTool(app);
             var psi = new System.Diagnostics.ProcessStartInfo(app)
             {
                 RedirectStandardOutput = true,
@@ -64,10 +118,8 @@ namespace TrophyPrompt.Core
             {
                 psi.ArgumentList.Add(a);
             }
-            if (useToolDirectory)
-            {
-                psi.WorkingDirectory = ToolDirectory();
-            }
+            // pfdtool reads global.conf / games.conf from its working directory.
+            psi.WorkingDirectory = ToolDirectory();
             using (var proc = System.Diagnostics.Process.Start(psi))
             {
                 if (proc == null)
@@ -88,8 +140,17 @@ namespace TrophyPrompt.Core
                     throw new Exception("pfdtool failed (exit code " + proc.ExitCode + "). " +
                         (OperatingSystem.IsWindows()
                             ? "Make sure the Microsoft Visual C++ 2010 x86 runtime is installed."
-                            : "pfdtool is a Windows binary; on macOS/Linux it needs Wine.") +
+                            : "Make sure the pfdtool file is executable and built for this CPU.") +
                         (detail.Length > 0 ? Environment.NewLine + Environment.NewLine + detail : string.Empty));
+                }
+                // pfdtool reports some failures (e.g. unreadable config files)
+                // as "[*] Error: ..." lines while still exiting with code 0.
+                string[] errors = stdout.Split(new[] { (char)13, (char)10 }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(l => l.TrimStart().StartsWith("[*] Error", StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+                if (errors.Length > 0)
+                {
+                    throw new Exception("pfdtool reported an error:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
                 }
                 return stdout;
             }
@@ -97,18 +158,18 @@ namespace TrophyPrompt.Core
 
         public static void decryptSave(string gameid, string saveDir)
         {
-            RunPfdtool(false, "-g", gameid, "-d", saveDir, "USR-DATA");
+            RunPfdtool("-g", gameid, "-d", saveDir, "USR-DATA");
         }
 
         public static void encryptSave(string gameid, string saveDir)
         {
-            RunPfdtool(false, "-g", gameid, "-u", saveDir);
-            RunPfdtool(false, "-g", gameid, "-e", saveDir, "USR-DATA");
+            RunPfdtool("-g", gameid, "-u", saveDir);
+            RunPfdtool("-g", gameid, "-e", saveDir, "USR-DATA");
         }
 
         public static void decryptTrophy(string saveDir)
         {
-            string message = RunPfdtool(true, "-d", saveDir, "TROPTRNS.DAT");
+            string message = RunPfdtool("-d", saveDir, "TROPTRNS.DAT");
             // pfdtool prints only its banner on success; anything else is an error
             // description. Compare line-ending-agnostically (Wine prints LF only).
             string body = string.Join(Environment.NewLine, message
@@ -147,8 +208,8 @@ namespace TrophyPrompt.Core
                 }
             }
             // update PFD, then encrypt savedata
-            RunPfdtool(true, "-u", saveDir);
-            RunPfdtool(true, "-e", saveDir, "TROPTRNS.DAT");
+            RunPfdtool("-u", saveDir);
+            RunPfdtool("-e", saveDir, "TROPTRNS.DAT");
         }
 
         // Copies the original (encrypted) trophy files somewhere safe before the

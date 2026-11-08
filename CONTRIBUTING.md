@@ -6,7 +6,8 @@ Thanks for considering a contribution. This is a niche tool and every PR genuine
 
 | Area | Why it matters |
 |------|----------------|
-| **Cross-platform pfdtool** | Biggest gap — decryption/encryption only works on Windows currently |
+| **macOS/Linux testing** | Native pfdtool builds ship now — they need real-world open/save testing |
+| **C# pfdtool** | A managed replacement would remove the native binaries entirely |
 | **Linux/macOS packaging** | AppImage, DMG, Flatpak, Homebrew formula |
 | **Unit tests** | Parser layer (`vendor/TROPHYParser`) has zero tests |
 | **UI/UX** | Accessibility, keyboard nav, dark mode polish |

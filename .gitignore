@@ -15,3 +15,7 @@ packages/
 LOGS/
 debug.log
 TestResults/
+
+# Native pfdtool builds (CI / scripts/build-pfdtool.sh)
+vendor/pfdtool/native/
+.pfdtool-src/

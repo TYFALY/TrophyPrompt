@@ -78,7 +78,7 @@ dotnet run --project TrophyPrompt.csproj -c Release
 
 ## Features
 
-- **Cross-platform** — Windows, macOS (Intel + Apple Silicon), Linux
+- **Cross-platform** — Windows, macOS (Intel + Apple Silicon), Linux — native everywhere, no Wine
 - **Zero external deps** — `TROPHYParser`, `BigEndianTool`, `pfdtool` all vendored in `/vendor`
 - **Smart import** — Matches by trophy ID, falls back to name, applies the platinum last, and lists anything it had to reject
 - **Drag & drop** — Drop a trophy folder on the window to open it
@@ -104,7 +104,15 @@ dotnet publish TrophyPrompt.csproj -c Release -r osx-x64   --self-contained true
 dotnet publish TrophyPrompt.csproj -c Release -r osx-arm64 --self-contained true -p:PublishSingleFile=true -o ./publish/osx-arm64
 ```
 
-> **Note:** `pfdtool` (PFD encryption/decryption) is Windows-only. On macOS/Linux the app launches but decryption/encryption won't work unless you provide a cross-platform alternative or run the Windows binary via Wine.
+> **macOS / Linux from source:** PFD decrypt/encrypt uses a native `pfdtool` built from
+> [bucanero/pfd_sfo_tools](https://github.com/bucanero/pfd_sfo_tools). Build it once before `dotnet build`
+> (needs `git`, `make`, and `zig` or `pip install ziglang`):
+>
+> ```bash
+> sh scripts/build-pfdtool.sh
+> ```
+>
+> Release downloads already include it. Windows uses the bundled `pfdtool.exe`.
 
 ---
 
@@ -117,6 +125,7 @@ dotnet publish TrophyPrompt.csproj -c Release -r osx-arm64 --self-contained true
 | RPCS3 folder opens with garbage names | Toggle **RPCS3 format** and reopen. |
 | Platinum won't unlock | Every base-game trophy has to be unlocked first. |
 | Can't change a trophy | It's already synced with PSN, or the new time is before the last sync. |
+| macOS says the app or pfdtool "can't be opened" | Run `xattr -dr com.apple.quarantine <extracted folder>` once. |
 | Something else | Check `debug.log` next to the executable and [open an issue](https://github.com/TYFALY/TrophyPrompt/issues/new/choose). |
 
 ---
@@ -145,7 +154,8 @@ TrophyPrompt/
 ├── vendor/
 │   ├── TROPHYParser/    # PS3 trophy parsing
 │   ├── BigEndianTool/   # Big-endian binary I/O
-│   └── pfdtool/         # Native PFD crypto (Windows exe + configs)
+│   └── pfdtool/         # PFD crypto: Windows exe + configs (macOS/Linux build via scripts/)
+├── scripts/         # build-pfdtool.sh — native pfdtool for macOS/Linux
 ├── tests/           # xUnit tests (run with `dotnet test`)
 └── TrophyPrompt.sln
 ```
@@ -157,7 +167,8 @@ TrophyPrompt/
 Help is welcome — seriously. This is a niche tool and every PR matters.
 
 **Good places to start:**
-- Cross-platform `pfdtool` alternative (biggest gap — see note above)
+- Testing open/save on macOS and Linux with real trophy folders
+- A pure C# replacement for `pfdtool` (drops the native binaries entirely)
 - Linux/macOS packaging (AppImage, DMG, Flatpak)
 - Unit tests for the parser layer (`vendor/TROPHYParser`) — a starter suite lives in `tests/`
 - UI polish / accessibility improvements
@@ -177,10 +188,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License & Credits
 
-**MIT License** — see [LICENSE](LICENSE) for details.
+**MIT License** — see [LICENSE](LICENSE). Bundled third-party components and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 - Original PS3 trophy parsing logic: [PS3TrophyIsGood](https://github.com/darkautism/PS3TrophyIsGood) by darkautism
-- `pfdtool` by flatz (included in `/vendor/pfdtool`)
+- `pfdtool` by flatz (included in `/vendor/pfdtool`); macOS/Linux port by [bucanero](https://github.com/bucanero/pfd_sfo_tools)
 - Avalonia UI framework
 - CommunityToolkit.Mvvm, Newtonsoft.Json, SkiaSharp, HarfBuzzSharp
 

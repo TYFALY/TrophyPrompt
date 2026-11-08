@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+env:
+  ZIGLANG_VERSION: '0.17.1'
+
 jobs:
   publish:
     name: Publish Artifacts (${{ matrix.target }})
@@ -39,9 +42,34 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Setup Python (for zig)
+        if: matrix.os != 'windows-latest'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Build native pfdtool
+        if: matrix.os != 'windows-latest'
+        run: |
+          python -m pip install --quiet "ziglang==${ZIGLANG_VERSION}"
+          ZIG="python -m ziglang" sh scripts/build-pfdtool.sh ${{ matrix.target }}
+
       - name: Publish Binary
         run: |
           dotnet publish TrophyPrompt.csproj -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true -o ./publish
+
+      - name: Verify bundled pfdtool
+        if: matrix.os != 'windows-latest'
+        run: |
+          ls -l ./publish/pfdtool
+          test -x ./publish/pfdtool/pfdtool
+          test ! -e ./publish/pfdtool/pfdtool.exe
+          # x64 macOS binaries may not run on the arm64 runner; check the rest execute.
+          if [ "${{ matrix.target }}" != "osx-x64" ]; then
+            out="$(cd ./publish/pfdtool && ./pfdtool -h || true)"
+            echo "$out" | head -3
+            echo "$out" | grep -q "by flatz"
+          fi
 
       - name: Package Release Asset (Unix)
         if: matrix.os != 'windows-latest'
@@ -102,7 +130,8 @@ jobs:
 
             Verify downloads with `SHA256SUMS.txt`.
 
-            > `pfdtool` (PFD decrypt/encrypt) is a Windows binary. On macOS/Linux run it through Wine.
+            macOS/Linux builds bundle a native `pfdtool` (from [bucanero/pfd_sfo_tools](https://github.com/bucanero/pfd_sfo_tools)), so no Wine is needed.
+            On macOS, if Gatekeeper blocks the app: `xattr -dr com.apple.quarantine <extracted folder>`.
           files: |
             ./artifacts/*/*
             ./SHA256SUMS.txt

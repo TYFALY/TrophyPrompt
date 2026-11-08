@@ -34,3 +34,34 @@ jobs:
 
       - name: Run Tests
         run: dotnet test --configuration Release --no-build --verbosity normal
+  native-pfdtool:
+    name: Native pfdtool (${{ matrix.rid }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python (for zig)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Build pfdtool
+        run: |
+          python -m pip install --quiet "ziglang==0.17.1"
+          ZIG="python -m ziglang" sh scripts/build-pfdtool.sh ${{ matrix.rid }}
+
+      - name: Smoke test
+        run: |
+          cp vendor/pfdtool/*.conf vendor/pfdtool/native/${{ matrix.rid }}/
+          cd vendor/pfdtool/native/${{ matrix.rid }}
+          out="$(./pfdtool -h || true)"
+          echo "$out" | head -3
+          echo "$out" | grep -q "by flatz"

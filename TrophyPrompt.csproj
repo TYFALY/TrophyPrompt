@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
@@ -40,23 +40,32 @@
     <ProjectReference Include="vendor/pfdtool/pfdtool.csproj" />
   </ItemGroup>
 
+  <!--
+    pfdtool: Windows uses flatz's original pfdtool.exe (vendor/pfdtool).
+    macOS/Linux use a native build of the same tool placed at
+    vendor/pfdtool/native/<rid>/pfdtool (built by CI, or locally with
+    scripts/build-pfdtool.sh). The .conf files are shared by both.
+  -->
+  <PropertyGroup>
+    <PfdtoolRid>$(RuntimeIdentifier)</PfdtoolRid>
+    <PfdtoolRid Condition="'$(PfdtoolRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</PfdtoolRid>
+    <PfdtoolIsWindows>false</PfdtoolIsWindows>
+    <PfdtoolIsWindows Condition="$(PfdtoolRid.StartsWith('win'))">true</PfdtoolIsWindows>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PfdtoolFiles Include="vendor/pfdtool/games.conf;vendor/pfdtool/global.conf" />
+    <PfdtoolFiles Include="vendor/pfdtool/pfdtool.exe;vendor/pfdtool/msvcr100.dll" Condition="'$(PfdtoolIsWindows)' == 'true'" />
+    <PfdtoolFiles Include="vendor/pfdtool/native/$(PfdtoolRid)/pfdtool" Condition="'$(PfdtoolIsWindows)' != 'true' and Exists('vendor/pfdtool/native/$(PfdtoolRid)/pfdtool')" />
+  </ItemGroup>
+
   <Target Name="CopyPfdtoolNativeFiles" AfterTargets="Build">
-    <ItemGroup>
-      <PfdtoolNativeFiles Include="vendor/pfdtool/pfdtool.exe" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/msvcr100.dll" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/games.conf" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/global.conf" />
-    </ItemGroup>
-    <Copy SourceFiles="@(PfdtoolNativeFiles)" DestinationFolder="$(OutputPath)pfdtool" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PfdtoolFiles)" DestinationFolder="$(OutputPath)pfdtool" SkipUnchangedFiles="true" />
+    <Warning Condition="'$(PfdtoolIsWindows)' != 'true' and !Exists('vendor/pfdtool/native/$(PfdtoolRid)/pfdtool')"
+             Text="No native pfdtool for $(PfdtoolRid). Run scripts/build-pfdtool.sh to build one, or opening trophy folders will fail." />
   </Target>
 
   <Target Name="CopyPfdtoolNativeFilesPublish" AfterTargets="Publish">
-    <ItemGroup>
-      <PfdtoolNativeFiles Include="vendor/pfdtool/pfdtool.exe" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/msvcr100.dll" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/games.conf" />
-      <PfdtoolNativeFiles Include="vendor/pfdtool/global.conf" />
-    </ItemGroup>
-    <Copy SourceFiles="@(PfdtoolNativeFiles)" DestinationFolder="$(PublishDir)pfdtool" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PfdtoolFiles)" DestinationFolder="$(PublishDir)pfdtool" SkipUnchangedFiles="true" />
   </Target>
 </Project>
