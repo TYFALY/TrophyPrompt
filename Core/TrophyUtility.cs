@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Threading;
 
 namespace TrophyPrompt.Core
 {
@@ -9,7 +8,6 @@ namespace TrophyPrompt.Core
     // Only the namespace changed so the Avalonia frontend can share the core.
     public static class TrophyUtility
     {
-        public static ManualResetEvent servingReady = new ManualResetEvent(false);
         private static string[] TROPHY_FILES_EXTENSION = { ".PFD", ".SFO", ".DAT", ".SFM" };
 
         // Anchor external tools to the app folder, not the working directory:
@@ -44,112 +42,145 @@ namespace TrophyPrompt.Core
             return "profiles";
         }
 
+        // Runs pfdtool with properly escaped arguments (ArgumentList, no string
+        // concatenation), drains stdout/stderr concurrently so a chatty tool can
+        // never deadlock on a full pipe, and fails loudly on a non-zero exit code
+        // instead of silently copying half-written files back to the user.
+        private static string RunPfdtool(bool useToolDirectory, params string[] args)
+        {
+            string app = ToolApp();
+            if (!File.Exists(app))
+            {
+                throw new FileNotFoundException("pfdtool.exe was not found next to TrophyPrompt. Re-download the release or rebuild the project.", app);
+            }
+            var psi = new System.Diagnostics.ProcessStartInfo(app)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            foreach (string a in args)
+            {
+                psi.ArgumentList.Add(a);
+            }
+            if (useToolDirectory)
+            {
+                psi.WorkingDirectory = ToolDirectory();
+            }
+            using (var proc = System.Diagnostics.Process.Start(psi))
+            {
+                if (proc == null)
+                {
+                    throw new InvalidOperationException("Could not start pfdtool.");
+                }
+                var stderrTask = proc.StandardError.ReadToEndAsync();
+                string stdout = proc.StandardOutput.ReadToEnd();
+                if (!proc.WaitForExit(120000))
+                {
+                    try { proc.Kill(true); } catch { }
+                    throw new TimeoutException("pfdtool did not finish within 2 minutes.");
+                }
+                string stderr = stderrTask.GetAwaiter().GetResult();
+                if (proc.ExitCode != 0)
+                {
+                    string detail = (stderr + Environment.NewLine + stdout).Trim();
+                    throw new Exception("pfdtool failed (exit code " + proc.ExitCode + "). " +
+                        (OperatingSystem.IsWindows()
+                            ? "Make sure the Microsoft Visual C++ 2010 x86 runtime is installed."
+                            : "pfdtool is a Windows binary; on macOS/Linux it needs Wine.") +
+                        (detail.Length > 0 ? Environment.NewLine + Environment.NewLine + detail : string.Empty));
+                }
+                return stdout;
+            }
+        }
+
         public static void decryptSave(string gameid, string saveDir)
         {
-            // update PFD
-            System.Diagnostics.ProcessStartInfo procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), "-g " + gameid + " -d \"" + saveDir + "\" USR-DATA");
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            System.Diagnostics.Process proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
+            RunPfdtool(false, "-g", gameid, "-d", saveDir, "USR-DATA");
         }
 
         public static void encryptSave(string gameid, string saveDir)
         {
-            // update PFD
-            System.Diagnostics.ProcessStartInfo procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), "-g " + gameid + " -u \"" + saveDir + "\"");
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            System.Diagnostics.Process proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
-            // encrypt savedata
-            procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), "-g " + gameid + " -e \"" + saveDir + "\" USR-DATA");
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
+            RunPfdtool(false, "-g", gameid, "-u", saveDir);
+            RunPfdtool(false, "-g", gameid, "-e", saveDir, "USR-DATA");
         }
 
         public static void decryptTrophy(string saveDir)
         {
-            // update PFD
-            System.Diagnostics.ProcessStartInfo procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), " -d \"" + saveDir + "\" TROPTRNS.DAT");
-            procStartInfo.WorkingDirectory = ToolDirectory();
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            System.Diagnostics.Process proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
-            string message = proc.StandardOutput.ReadToEnd();
-            if (proc.ExitCode != 0)
+            string message = RunPfdtool(true, "-d", saveDir, "TROPTRNS.DAT");
+            // pfdtool prints only its banner on success; anything else is an error
+            // description. Compare line-ending-agnostically (Wine prints LF only).
+            string body = string.Join(Environment.NewLine, message
+                .Split(new[] { (char)13, (char)10 }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(l => l.Trim().Length > 0 && !l.StartsWith("pfdtool ", StringComparison.Ordinal)));
+            if (body.Length > 0)
             {
-                throw new Exception("An error ocurred on decrypt trophies. Please check if Microsoft Visual C++ is installed. You can download it at: http://www.microsoft.com/download/en/details.aspx?id=5555");
-            }
-            else if (message != "pfdtool 0.2.3 (c) 2012 by flatz\r\n\r\n")
-            {
-                throw new Exception(message);
+                throw new Exception(body);
             }
         }
 
         public static void encryptTrophy(string saveDir, string profile)
         {
-            //resing with other param.sfo
-            if (profile != "Default Profile")
+            //resign with other param.sfo
+            if (!string.IsNullOrEmpty(profile) && profile != "Default Profile")
             {
-                profile = Path.Combine(ProfilesDirectory(), profile);
+                // Profile names come from the profiles folder listing; strip any
+                // directory component so a crafted name can't escape that folder.
+                profile = Path.Combine(ProfilesDirectory(), Path.GetFileName(profile));
                 byte[] profileId;
-                using (var br = new BinaryReader(new FileStream(profile, FileMode.Open)))
+                using (var br = new BinaryReader(new FileStream(profile, FileMode.Open, FileAccess.Read)))
                 {
                     br.BaseStream.Position = 0xC;
-                    br.BaseStream.Position = br.ReadInt32();
+                    int offset = br.ReadInt32();
+                    if (offset < 0 || offset + 0x10 > br.BaseStream.Length)
+                    {
+                        throw new InvalidDataException("Profile PARAM.SFO is invalid: " + Path.GetFileName(profile));
+                    }
+                    br.BaseStream.Position = offset;
                     profileId = br.ReadBytes(0x10);
                 }
-                using (var bw = new BinaryWriter(new FileStream(Path.Combine(saveDir, "PARAM.SFO"), FileMode.Open)))
+                using (var bw = new BinaryWriter(new FileStream(Path.Combine(saveDir, "PARAM.SFO"), FileMode.Open, FileAccess.Write)))
                 {
                     bw.BaseStream.Position = 0x274;
                     bw.Write(profileId);
                 }
             }
-            // update PFD
-            System.Diagnostics.ProcessStartInfo procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), " -u \"" + saveDir + "\"");
-            procStartInfo.WorkingDirectory = ToolDirectory();
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            System.Diagnostics.Process proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
-            // encrypt savedata
-            procStartInfo = new System.Diagnostics.ProcessStartInfo(ToolApp(), " -e \"" + saveDir + "\" TROPTRNS.DAT");
-            procStartInfo.WorkingDirectory = ToolDirectory();
-            procStartInfo.RedirectStandardOutput = true;
-            procStartInfo.UseShellExecute = false;
-            procStartInfo.CreateNoWindow = true;
-            proc = new System.Diagnostics.Process();
-            proc.StartInfo = procStartInfo;
-            proc.Start();
-            proc.WaitForExit();
+            // update PFD, then encrypt savedata
+            RunPfdtool(true, "-u", saveDir);
+            RunPfdtool(true, "-e", saveDir, "TROPTRNS.DAT");
+        }
+
+        // Copies the original (encrypted) trophy files somewhere safe before the
+        // first overwrite, so a bad save or a bad LLM import is always reversible.
+        public static string BackupTrophyData(string trophyDir)
+        {
+            string root = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "TrophyPrompt", "backups");
+            string name = new DirectoryInfo(trophyDir).Name;
+            string target = Path.Combine(root, name + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            CopyTrophyData(trophyDir, target, true);
+            foreach (string png in Directory.GetFiles(trophyDir))
+            {
+                // keep the folder self-contained and restorable as-is
+                if (png.EndsWith(".PNG", StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(png, Path.Combine(target, Path.GetFileName(png)), true);
+                }
+            }
+            return target;
         }
 
         public static long LongRandom(long min, long max, Random rand)
         {
-            byte[] buf = new byte[8];
-            rand.NextBytes(buf);
-            long longRand = BitConverter.ToInt64(buf, 0);
-
-            return (Math.Abs(longRand % (max - min)) + min);
+            // Guard: max <= min used to throw DivideByZeroException (e.g. a
+            // "Randomize" range whose end is before its start).
+            if (max <= min)
+            {
+                return min;
+            }
+            return rand.NextInt64(min, max);
         }
 
         public static DateTime TimeStampToDateTime(this long timestamp)

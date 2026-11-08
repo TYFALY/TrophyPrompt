@@ -37,6 +37,13 @@ namespace TrophyPrompt.ViewModels
         private DateTime _randomEndTime = DateTime.Now;
         private bool _isOpen;
         private int _baseGameCount;
+        // Set while a batch operation runs so every single-trophy edit doesn't
+        // rebuild the whole grid (and re-read every PNG icon) - was O(n^2).
+        private bool _suspendRebuild;
+        private bool _backupDone;
+
+        [ObservableProperty]
+        private string _lastBackupPath = string.Empty;
 
         // ---- Header / PSN metadata (two-way bindable) ----
         [ObservableProperty]
@@ -214,14 +221,14 @@ namespace TrophyPrompt.ViewModels
             LogDiag("OpenFolderCommand fired. HostWindow null = " + (HostWindow == null) + ", IsOpen = " + _isOpen + ".");
             if (HostWindow == null)
             {
-                StatusMessage = "DIAG: HostWindow is null — command fired but window not wired.";
+                StatusMessage = "Window is not ready yet — try again.";
                 LogDiag("OpenFolderCommand aborted: HostWindow null.");
                 return;
             }
             TopLevel topLevel = TopLevel.GetTopLevel(HostWindow);
             if (topLevel == null)
             {
-                StatusMessage = "DIAG: TopLevel is null — window not attached yet.";
+                StatusMessage = "Window is not ready yet — try again.";
                 LogDiag("OpenFolderCommand aborted: TopLevel null.");
                 return;
             }
@@ -232,7 +239,7 @@ namespace TrophyPrompt.ViewModels
             });
             if (folders == null || folders.Count == 0)
             {
-                StatusMessage = "DIAG: picker cancelled or returned nothing.";
+                StatusMessage = "Open cancelled.";
                 LogDiag("OpenFolderCommand: picker cancelled/empty.");
                 return;
             }
@@ -343,9 +350,10 @@ namespace TrophyPrompt.ViewModels
             }
             await Task.Run(() =>
             {
+                string temp = null;
                 try
                 {
-                    string temp = TrophyUtility.CopyTrophyDirToTemp(folder);
+                    temp = TrophyUtility.CopyTrophyDirToTemp(folder);
                     TrophyUtility.decryptTrophy(temp);
                     TROPCONF conf = new TROPCONF(temp, IsRpcs3Format);
                     TROPTRNS trns = new TROPTRNS(temp, IsRpcs3Format);
@@ -366,6 +374,7 @@ namespace TrophyPrompt.ViewModels
                     _randomEndTime = DateTime.Now;
                     _isOpen = true;
                     _haveBeenEdited = false;
+                    _backupDone = false;
 
                     Dispatcher.UIThread.Post(() =>
                     {
@@ -388,6 +397,8 @@ namespace TrophyPrompt.ViewModels
                     _tusr = null;
                     GC.Collect();
                     LogDiag("OpenFolderAtAsync FileNotFound: " + ex.Message);
+                    // Don't leave decrypted copies of a failed open lying in %TEMP%.
+                    DeleteTempRoot(temp);
                     Dispatcher.UIThread.Post(() =>
                     {
                         StatusMessage = "\"" + System.IO.Path.GetFileName(ex.FileName) + "\" was not found. Please, select a valid trophy folder.";
@@ -402,6 +413,8 @@ namespace TrophyPrompt.ViewModels
                     GC.Collect();
                     string msg = ex.Message;
                     LogDiag("OpenFolderAtAsync FAILED: " + ex.GetType().Name + ": " + msg);
+                    // Don't leave decrypted copies of a failed open lying in %TEMP%.
+                    DeleteTempRoot(temp);
                     Dispatcher.UIThread.Post(() =>
                     {
                         StatusMessage = msg;
@@ -571,6 +584,10 @@ namespace TrophyPrompt.ViewModels
         // derived text refresh exactly like legacy RefreshComponents().
         private void RebuildPreservingSelection(int id)
         {
+            if (_suspendRebuild)
+            {
+                return;
+            }
             RebuildTrophyList();
             SelectedTrophy = Trophies.FirstOrDefault(t => t.Id == id);
         }
@@ -599,7 +616,7 @@ namespace TrophyPrompt.ViewModels
             error = null;
             if (trophyId == 0 && _tconf.HasPlatinium && GetCountBaseTrophiesGot() < _baseGameCount)
             {
-                error = "You can't unlock platinum when other thropy is unlocked.";
+                error = "Unlock every other base-game trophy before the platinum.";
                 return false;
             }
             string verr;
@@ -664,7 +681,7 @@ namespace TrophyPrompt.ViewModels
             }
             if (trophyId != 0 && _tconf[trophyId].gid == 0 && IsTrophyGot(0))
             {
-                error = "You can't lock other trophies while platinum is locked.";
+                error = "Lock the platinum first — it can't stay unlocked without the other base-game trophies.";
                 return false;
             }
             try
@@ -723,30 +740,34 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            Random rand = new Random((int)DateTime.Now.Ticks);
+            Random rand = Random.Shared;
             int i;
             for (i = 1; i < _tusr.trophyTimeInfoTable.Count && _tconf[i].gid == 0; i++)
             {
                 if (!IsTrophyGot(i))
                 {
+                    // Same timestamp in both tables - they used to get two different
+                    // random values, leaving TROPUSR and TROPTRNS out of sync.
                     DateTime t = new DateTime(TrophyUtility.LongRandom(_ps3Time.Ticks, _randomEndTime.Ticks, rand));
                     _tusr.UnlockTrophy(i, t);
-                    _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, new DateTime(TrophyUtility.LongRandom(_ps3Time.Ticks, _randomEndTime.Ticks, rand)));
+                    _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, t);
                 }
             }
             if (!IsTrophyGot(0))
             {
                 DateTime last = LastTrophyTime().AddSeconds(1);
                 _tusr.UnlockTrophy(0, last);
-                _tpsn.PutTrophy(0, _tusr.trophyTypeTable[0].Type, LastTrophyTime().AddSeconds(1));
+                _tpsn.PutTrophy(0, _tusr.trophyTypeTable[0].Type, last);
             }
             for (; i < _tusr.trophyTimeInfoTable.Count; i++)
             {
                 if (!IsTrophyGot(i))
                 {
+                    // Same timestamp in both tables - they used to get two different
+                    // random values, leaving TROPUSR and TROPTRNS out of sync.
                     DateTime t = new DateTime(TrophyUtility.LongRandom(_ps3Time.Ticks, _randomEndTime.Ticks, rand));
                     _tusr.UnlockTrophy(i, t);
-                    _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, new DateTime(TrophyUtility.LongRandom(_ps3Time.Ticks, _randomEndTime.Ticks, rand)));
+                    _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, t);
                 }
             }
             _haveBeenEdited = true;
@@ -761,18 +782,54 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            Random rand = new Random((int)DateTime.Now.Ticks);
-            for (int i = 0; i < Trophies.Count; i++)
+            Random rand = Random.Shared;
+            // Never generate times before the last PSN sync - those edits were
+            // silently rejected, so "Randomize" often appeared to do nothing.
+            DateTime start = RandomStartTime < _lastSyncTrophyTime ? _lastSyncTrophyTime : RandomStartTime;
+            DateTime end = RandomEndTimeProp;
+            if (end <= start)
             {
-                if (IsTrophyGot(i) && !IsTrophySync(i))
-                {
-                    DateTime t = new DateTime(TrophyUtility.LongRandom(RandomStartTime.Ticks, RandomEndTimeProp.Ticks, rand));
-                    string err;
-                    ChangeTrophyTime(i, t, out err);
-                }
+                StatusMessage = "Randomize: the end time must be after " + start.ToString("yyyy-MM-dd HH:mm:ss") + ".";
+                return;
             }
-            RebuildTrophyList();
-            StatusMessage = "Timestamps randomized.";
+            int failed = RunBatch(() =>
+            {
+                int f = 0;
+                DateTime latest = DateTime.MinValue;
+                for (int i = 0; i < Trophies.Count; i++)
+                {
+                    if (i == 0 && _tconf.HasPlatinium)
+                    {
+                        continue; // platinum is placed after everything else below
+                    }
+                    if (IsTrophyGot(i) && !IsTrophySync(i))
+                    {
+                        DateTime t = new DateTime(TrophyUtility.LongRandom(start.Ticks, end.Ticks, rand));
+                        if (!ChangeTrophyTime(i, t, out _))
+                        {
+                            f++;
+                        }
+                    }
+                    if (IsTrophyGot(i))
+                    {
+                        DateTime cur = CurrentTime(i);
+                        if (cur > latest)
+                        {
+                            latest = cur;
+                        }
+                    }
+                }
+                // Platinum always pops right after the final trophy.
+                if (_tconf.HasPlatinium && IsTrophyGot(0) && !IsTrophySync(0) && latest > DateTime.MinValue)
+                {
+                    if (!ChangeTrophyTime(0, latest.AddSeconds(rand.Next(1, 4)), out _))
+                    {
+                        f++;
+                    }
+                }
+                return f;
+            });
+            StatusMessage = failed == 0 ? "Timestamps randomized." : "Timestamps randomized (" + failed + " trophies could not be changed).";
         }
 
         [RelayCommand]
@@ -784,57 +841,19 @@ namespace TrophyPrompt.ViewModels
             }
             DateTime anchor = BatchCustomTime;
             TimeSpan step = TimeSpan.FromMinutes(5);
-            for (int i = 0; i < Trophies.Count; i++)
+            RunBatch(() =>
             {
-                if (IsTrophyGot(i) && !IsTrophySync(i))
+                for (int i = 0; i < Trophies.Count; i++)
                 {
-                    string err;
-                    ChangeTrophyTime(i, anchor, out err);
-                    anchor = anchor.Add(step);
-                }
-            }
-            RebuildTrophyList();
-            StatusMessage = "Timestamps copied sequentially from batch time.";
-        }
-
-        // ---------- Copy From (psntrophyleaders scrape, legacy toolStripMenuItem1) ----------
-        public bool ApplyCopiedTimes(IList<long> times, out string error)
-        {
-            error = null;
-            if (!_isOpen || times == null)
-            {
-                error = "No trophy folder loaded.";
-                return false;
-            }
-            try
-            {
-                // Legacy locks everything first so the grid refreshes cleanly.
-                TROPTRNS.TrophyInfo? ti = _tpsn.PopTrophy();
-                while (ti.HasValue)
-                {
-                    _tusr.LockTrophy(ti.Value.TrophyID);
-                    ti = _tpsn.PopTrophy();
-                }
-                int n = Math.Min(times.Count, _tusr.trophyTimeInfoTable.Count);
-                for (int i = 0; i < n; i++)
-                {
-                    if (!_tpsn[i].HasValue && times[i] != 0)
+                    if (IsTrophyGot(i) && !IsTrophySync(i))
                     {
-                        DateTime time = times[i].TimeStampToDateTime();
-                        _tusr.UnlockTrophy(i, time);
-                        _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, time);
+                        ChangeTrophyTime(i, anchor, out _);
+                        anchor = anchor.Add(step);
                     }
                 }
-                _haveBeenEdited = true;
-                RebuildTrophyList();
-                StatusMessage = "Copied times from profile.";
-                return true;
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-                return false;
-            }
+                return 0;
+            });
+            StatusMessage = "Timestamps copied sequentially from batch time.";
         }
 
         [RelayCommand]
@@ -844,23 +863,86 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            for (int i = 0; i < Trophies.Count; i++)
+            RunBatch(() =>
             {
-                if (!IsTrophyGot(i))
+                // Platinum (id 0) goes last: it can only unlock after the rest.
+                int count = Trophies.Count;
+                foreach (int i in Enumerable.Range(1, Math.Max(0, count - 1)).Append(0))
                 {
-                    string err;
-                    UnlockTrophy(i, BatchCustomTime, out err);
-                    BatchCustomTime = BatchCustomTime.AddMinutes(1);
+                    if (i >= count)
+                    {
+                        continue;
+                    }
+                    if (!IsTrophyGot(i))
+                    {
+                        UnlockTrophy(i, BatchCustomTime, out _);
+                        BatchCustomTime = BatchCustomTime.AddMinutes(1);
+                    }
+                    else if (!IsTrophySync(i))
+                    {
+                        ChangeTrophyTime(i, BatchCustomTime, out _);
+                        BatchCustomTime = BatchCustomTime.AddMinutes(1);
+                    }
                 }
-                else if (!IsTrophySync(i))
+                return 0;
+            });
+            StatusMessage = "Batch custom time applied.";
+        }
+
+        private int RunBatch(Func<int> body)
+        {
+            int? selected = SelectedTrophy?.Id;
+            _suspendRebuild = true;
+            try
+            {
+                return body();
+            }
+            finally
+            {
+                _suspendRebuild = false;
+                RebuildTrophyList();
+                if (selected.HasValue)
                 {
-                    string err;
-                    ChangeTrophyTime(i, BatchCustomTime, out err);
-                    BatchCustomTime = BatchCustomTime.AddMinutes(1);
+                    SelectedTrophy = Trophies.FirstOrDefault(t => t.Id == selected.Value);
                 }
             }
-            RebuildTrophyList();
-            StatusMessage = "Batch custom time applied.";
+        }
+
+        private DateTime CurrentTime(int id)
+        {
+            return _tpsn[id].HasValue ? _tpsn[id].Value.Time : _tusr.trophyTimeInfoTable[id].Time;
+        }
+
+        private static void DeleteTempRoot(string temp)
+        {
+            if (string.IsNullOrEmpty(temp))
+            {
+                return;
+            }
+            try
+            {
+                string parent = Path.GetDirectoryName(temp);
+                string target = string.IsNullOrEmpty(parent) ? temp : parent;
+                // Only ever delete inside the system temp folder.
+                string tempRoot = Path.GetFullPath(Path.GetTempPath());
+                if (Path.GetFullPath(target).StartsWith(tempRoot, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(Path.GetFullPath(target).TrimEnd(Path.DirectorySeparatorChar), tempRoot.TrimEnd(Path.DirectorySeparatorChar), StringComparison.OrdinalIgnoreCase))
+                {
+                    TrophyUtility.DeleteDirectory(target);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        // Called by the window on exit so decrypted temp copies never outlive the app.
+        public void Shutdown()
+        {
+            if (_isOpen)
+            {
+                CloseFileInternal(false);
+            }
         }
 
         private DateTime LastTrophyTime()
@@ -876,34 +958,66 @@ namespace TrophyPrompt.ViewModels
         [RelayCommand]
         private async Task SaveAsync()
         {
+            await TrySaveAsync();
+        }
+
+        // Returns false when the save failed so callers (e.g. window close) can
+        // keep the app open instead of throwing away the user's edits.
+        public async Task<bool> TrySaveAsync()
+        {
             if (!_isOpen)
             {
-                return;
+                return true;
             }
             StatusMessage = "Saving ...";
+            string path = _path;
+            string pathTemp = _pathTemp;
+            string profile = SelectedProfile ?? "Default Profile";
+            bool needBackup = !_backupDone;
+            string error = null;
+            string backup = null;
             await Task.Run(() =>
             {
-                _tpsn.Save();
-                _tusr.Save();
-                _haveBeenEdited = false;
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
                 try
                 {
-                    TrophyUtility.CopyTrophyData(_pathTemp, encPathTemp, false);
-                    TrophyUtility.encryptTrophy(encPathTemp, SelectedProfile ?? "Default Profile");
-                    TrophyUtility.CopyTrophyData(encPathTemp, _path, true);
+                    _tpsn.Save();
+                    _tusr.Save();
+                    TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
+                    TrophyUtility.encryptTrophy(encPathTemp, profile);
+                    // Back up the untouched originals before the first overwrite.
+                    if (needBackup)
+                    {
+                        backup = TrophyUtility.BackupTrophyData(path);
+                    }
+                    TrophyUtility.CopyTrophyData(encPathTemp, path, true);
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                    LogDiag("Save FAILED: " + ex.GetType().Name + ": " + ex.Message);
                 }
                 finally
                 {
                     TrophyUtility.DeleteDirectory(encPathTemp);
                 }
-                Dispatcher.UIThread.Post(() =>
-                {
-                    RebuildTrophyList();
-                    PfdStatus = "Saved + re-signed (PFD)";
-                    StatusMessage = "Saved.";
-                });
             });
+            if (error != null)
+            {
+                StatusMessage = "Save failed — your original trophy folder was not changed.";
+                RaiseAlert("Save failed", error);
+                return false;
+            }
+            if (backup != null)
+            {
+                _backupDone = true;
+                LastBackupPath = backup;
+            }
+            _haveBeenEdited = false;
+            RebuildTrophyList();
+            PfdStatus = "Saved + re-signed (PFD)";
+            StatusMessage = backup != null ? "Saved. Original backed up to " + backup : "Saved.";
+            return true;
         }
 
         [RelayCommand]
@@ -918,37 +1032,53 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            IStorageFile file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            // A folder picker: the old file picker asked for "TROPTRNS.DAT" but
+            // actually wrote every trophy file into that file's directory.
+            IReadOnlyList<IStorageFolder> folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
             {
-                Title = "Save trophy folder copy as ...",
-                SuggestedFileName = "TROPTRNS.DAT",
+                Title = "Save a re-signed copy into folder ...",
+                AllowMultiple = false
             });
-            if (file == null)
+            if (folders == null || folders.Count == 0)
             {
                 return;
             }
-            string targetDir = Path.GetDirectoryName(file.TryGetLocalPath() ?? file.Path.LocalPath);
+            string targetDir = folders[0].TryGetLocalPath() ?? folders[0].Path.LocalPath;
             if (string.IsNullOrEmpty(targetDir))
             {
                 return;
             }
+            string pathTemp = _pathTemp;
+            string profile = SelectedProfile ?? "Default Profile";
+            string error = null;
             await Task.Run(() =>
             {
-                _tpsn.Save();
-                _tusr.Save();
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
                 try
                 {
-                    TrophyUtility.CopyTrophyData(_pathTemp, encPathTemp, false);
-                    TrophyUtility.encryptTrophy(encPathTemp, SelectedProfile ?? "Default Profile");
+                    _tpsn.Save();
+                    _tusr.Save();
+                    TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
+                    TrophyUtility.encryptTrophy(encPathTemp, profile);
                     TrophyUtility.CopyTrophyData(encPathTemp, targetDir, true);
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                    LogDiag("SaveAs FAILED: " + ex.GetType().Name + ": " + ex.Message);
                 }
                 finally
                 {
                     TrophyUtility.DeleteDirectory(encPathTemp);
                 }
-                Dispatcher.UIThread.Post(() => { StatusMessage = "Saved copy to " + targetDir; });
             });
+            if (error != null)
+            {
+                StatusMessage = "Save As failed.";
+                RaiseAlert("Save As failed", error);
+                return;
+            }
+            StatusMessage = "Saved copy to " + targetDir;
         }
 
         [RelayCommand]
@@ -968,17 +1098,7 @@ namespace TrophyPrompt.ViewModels
             _haveBeenEdited = false;
             _isOpen = false;
             // Legacy parity: decrypted temp copies must not accumulate in %TEMP%.
-            if (!string.IsNullOrEmpty(tempToDelete))
-            {
-                try
-                {
-                    string parent = Path.GetDirectoryName(tempToDelete);
-                    TrophyUtility.DeleteDirectory(string.IsNullOrEmpty(parent) ? tempToDelete : parent);
-                }
-                catch
-                {
-                }
-            }
+            DeleteTempRoot(tempToDelete);
             void clear()
             {
                 Trophies.Clear();
@@ -1089,9 +1209,9 @@ namespace TrophyPrompt.ViewModels
             return UnlockTrophy(row.Id, time, out error);
         }
 
-        public Task SaveFilesAsync()
+        public Task<bool> SaveFilesAsync()
         {
-            return SaveAsync();
+            return TrySaveAsync();
         }
 
         // ---------- Exporters ----------
@@ -1147,7 +1267,7 @@ namespace TrophyPrompt.ViewModels
             LogDiag("ExportJsonCommand fired. IsOpen = " + _isOpen + ", HostWindow null = " + (HostWindow == null) + ".");
             if (!_isOpen || HostWindow == null)
             {
-                StatusMessage = "DIAG: Export blocked — no folder open. Open a folder first.";
+                StatusMessage = "Open a trophy folder first (File → Open Folder, or drag it onto the window).";
                 return;
             }
             TopLevel topLevel = TopLevel.GetTopLevel(HostWindow);
@@ -1253,7 +1373,7 @@ namespace TrophyPrompt.ViewModels
             LogDiag("ImportJsonCommand fired. IsOpen = " + _isOpen + ", HostWindow null = " + (HostWindow == null) + ".");
             if (!_isOpen || HostWindow == null)
             {
-                StatusMessage = "DIAG: Import blocked — no folder open. Open a folder first.";
+                StatusMessage = "Open a trophy folder first (File → Open Folder, or drag it onto the window).";
                 return;
             }
             TopLevel topLevel = TopLevel.GetTopLevel(HostWindow);
@@ -1311,7 +1431,8 @@ namespace TrophyPrompt.ViewModels
                     StatusMessage = "No trophy data in JSON.";
                     return;
                 }
-                int matched = 0;
+                var resolved = new List<(int Index, TrophyDto Dto)>();
+                var seen = new HashSet<int>();
                 foreach (TrophyDto t in list)
                 {
                     if (t == null)
@@ -1319,32 +1440,56 @@ namespace TrophyPrompt.ViewModels
                         continue;
                     }
                     int idx = FindTrophyIndex(t);
-                    if (idx < 0)
+                    if (idx >= 0 && seen.Add(idx))
                     {
-                        continue;
-                    }
-                    matched++;
-                    DateTime sel = t.Timestamp == DateTime.MinValue ? DateTime.Now : t.Timestamp;
-                    string err;
-                    if (t.Unlocked)
-                    {
-                        if (!IsTrophyGot(idx))
-                        {
-                            UnlockTrophy(idx, sel, out err);
-                        }
-                        else
-                        {
-                            ChangeTrophyTime(idx, sel, out err);
-                        }
-                    }
-                    else if (IsTrophyGot(idx))
-                    {
-                        LockTrophy(idx, out err);
+                        resolved.Add((idx, t));
                     }
                 }
-                RebuildTrophyList();
-                StatusMessage = matched == 0 ? "No trophies matched." : "Imported " + matched + " entries.";
-                LogDiag("ImportJson: OK, matched=" + matched + ".");
+                bool hasPlat = _tconf.HasPlatinium;
+                List<string> failures = new List<string>();
+                RunBatch(() =>
+                {
+                    // Order matters: the platinum must be locked BEFORE other base
+                    // trophies and unlocked AFTER them, or the edit is rejected.
+                    // Exports list the platinum first (id 0), so a straight
+                    // in-order import used to silently drop the platinum.
+                    foreach (var r in ImportOrder.Sort(resolved, x => x.Index, x => x.Dto.Unlocked, hasPlat))
+                    {
+                        string err = null;
+                        bool ok = true;
+                        DateTime sel = r.Dto.Timestamp == DateTime.MinValue ? DateTime.Now : r.Dto.Timestamp;
+                        if (r.Dto.Unlocked)
+                        {
+                            if (!IsTrophyGot(r.Index))
+                            {
+                                ok = UnlockTrophy(r.Index, sel, out err);
+                            }
+                            else if (!IsTrophySync(r.Index) && CurrentTime(r.Index) != sel)
+                            {
+                                ok = ChangeTrophyTime(r.Index, sel, out err);
+                            }
+                        }
+                        else if (IsTrophyGot(r.Index))
+                        {
+                            ok = LockTrophy(r.Index, out err);
+                        }
+                        if (!ok)
+                        {
+                            failures.Add("#" + r.Index + " " + _tconf[r.Index].name + ": " + err);
+                        }
+                    }
+                    return failures.Count;
+                });
+                int matched = resolved.Count;
+                StatusMessage = matched == 0
+                    ? "No trophies matched."
+                    : "Imported " + matched + " entries" + (failures.Count > 0 ? ", " + failures.Count + " rejected." : ".");
+                if (failures.Count > 0)
+                {
+                    RaiseAlert("Some trophies were not imported", string.Join(Environment.NewLine, failures.Take(15)) +
+                        (failures.Count > 15 ? Environment.NewLine + "... and " + (failures.Count - 15) + " more" : string.Empty));
+                }
+                LogDiag("ImportJson: OK, matched=" + matched + ", failed=" + failures.Count + ".");
             }
             catch (Exception ex)
             {
@@ -1379,7 +1524,7 @@ namespace TrophyPrompt.ViewModels
             sb.AppendLine("Id,Name,Type,Hidden,Unlocked,Sync,Timestamp,Group");
             foreach (TrophyItemViewModel t in Trophies)
             {
-                sb.AppendLine(t.Id + ",\"" + (t.Name ?? string.Empty).Replace("\"", "\"\"") + "\"," + t.TypeName + "," + (t.IsHidden ? "yes" : "no") + "," + (t.IsUnlocked ? "yes" : "no") + "," + (t.IsSync ? "yes" : "no") + "," + t.TimestampText + "," + t.Group);
+                sb.AppendLine(t.Id + "," + CsvField.Escape(t.Name) + "," + t.TypeName + "," + (t.IsHidden ? "yes" : "no") + "," + (t.IsUnlocked ? "yes" : "no") + "," + (t.IsSync ? "yes" : "no") + "," + t.TimestampText + "," + t.Group);
             }
             string lp = file.TryGetLocalPath();
             if (!string.IsNullOrEmpty(lp))

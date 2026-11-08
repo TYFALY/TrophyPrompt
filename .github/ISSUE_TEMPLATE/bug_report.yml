@@ -1,0 +1,36 @@
+name: Bug report
+description: Something broke while opening, editing, importing or saving trophies
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: TrophyPrompt version
+      placeholder: v1.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: OS
+      options: [Windows, macOS (Intel), macOS (Apple Silicon), Linux]
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Trophy folder source
+      options: [RPCS3, Real PS3, Other]
+  - type: textarea
+    id: steps
+    attributes:
+      label: What happened?
+      description: Steps to reproduce, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: debug.log
+      description: Paste the last lines of `debug.log` (next to the executable). Remove your account ID if you prefer.
+      render: text

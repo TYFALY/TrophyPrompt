@@ -11,3 +11,7 @@ publish-standalone/
 
 # NuGet
 packages/
+# Local logs / CI log dumps
+LOGS/
+debug.log
+TestResults/

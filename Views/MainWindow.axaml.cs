@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
-using TrophyPrompt.Core;
 using TrophyPrompt.ViewModels;
 
 namespace TrophyPrompt.Views
@@ -23,7 +21,6 @@ namespace TrophyPrompt.Views
             get { return (MainViewModel)DataContext; }
         }
 
-        private Process _flareProcess;
         private bool _closingAfterPrompt;
 
         public MainWindow()
@@ -39,68 +36,6 @@ namespace TrophyPrompt.Views
             DragDrop.SetAllowDrop(this, true);
             AddHandler(DragDrop.DropEvent, OnDropFiles);
             Closing += OnWindowClosing;
-            StartFlareSolverr();
-        }
-
-        // Legacy parity: start flaresolverr proxy if bundled, never crash when missing.
-        private void StartFlareSolverr()
-        {
-            try
-            {
-                string dir = Path.Combine(AppContext.BaseDirectory, "flaresolverr");
-                string exe = Path.Combine(dir, "flaresolverr.exe");
-                if (!File.Exists(exe))
-                {
-                    return;
-                }
-                _flareProcess = new Process();
-                _flareProcess.StartInfo = new ProcessStartInfo();
-                _flareProcess.StartInfo.FileName = exe;
-                _flareProcess.StartInfo.WorkingDirectory = dir;
-                _flareProcess.StartInfo.RedirectStandardOutput = true;
-                _flareProcess.StartInfo.RedirectStandardError = true;
-                _flareProcess.StartInfo.UseShellExecute = false;
-                _flareProcess.StartInfo.CreateNoWindow = true;
-                _flareProcess.OutputDataReceived += (sender, e) =>
-                {
-                    if (e.Data != null && e.Data.Contains("Serving on"))
-                    {
-                        TrophyUtility.servingReady.Set();
-                    }
-                };
-                try
-                {
-                    _flareProcess.Start();
-                    _flareProcess.BeginOutputReadLine();
-                }
-                catch
-                {
-                    try { _flareProcess.Dispose(); } catch { }
-                    _flareProcess = null;
-                }
-            }
-            catch
-            {
-                _flareProcess = null;
-            }
-        }
-
-        private void KillFlareSolverr()
-        {
-            try
-            {
-                if (_flareProcess != null && !_flareProcess.HasExited)
-                {
-                    _flareProcess.Kill();
-                }
-            }
-            catch
-            {
-            }
-            finally
-            {
-                _flareProcess = null;
-            }
         }
 
         private async void OnDropFiles(object sender, DragEventArgs e)
@@ -128,7 +63,7 @@ namespace TrophyPrompt.Views
         {
             if (_closingAfterPrompt)
             {
-                KillFlareSolverr();
+                Vm.Shutdown();
                 return;
             }
             if (Vm.HasUnsavedChanges)
@@ -139,16 +74,18 @@ namespace TrophyPrompt.Views
                 {
                     return;
                 }
-                if (choice == 0)
+                // A failed save must not close the window and lose the edits.
+                if (choice == 0 && !await Vm.SaveFilesAsync())
                 {
-                    await Vm.SaveFilesAsync();
+                    return;
                 }
                 _closingAfterPrompt = true;
                 Close();
             }
             else
             {
-                KillFlareSolverr();
+                // Removes the decrypted temp copy of the trophy folder.
+                Vm.Shutdown();
             }
         }
 
