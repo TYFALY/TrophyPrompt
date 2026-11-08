@@ -56,7 +56,7 @@ jobs:
 
       - name: Publish Binary
         run: |
-          dotnet publish TrophyPrompt.csproj -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true -o ./publish
+          dotnet publish TrophyPrompt.csproj -c Release -r ${{ matrix.target }} --self-contained true /p:PublishSingleFile=true /p:EnableCompressionInSingleFile=true /p:DebugType=None /p:DebugSymbols=false -o ./publish
 
       - name: Verify bundled pfdtool
         if: matrix.os != 'windows-latest'

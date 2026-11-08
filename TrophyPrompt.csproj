@@ -37,7 +37,6 @@
   <ItemGroup>
     <ProjectReference Include="vendor/TROPHYParser/TROPHYParser.csproj" />
     <ProjectReference Include="vendor/BigEndianTool/BigEndianTool.csproj" />
-    <ProjectReference Include="vendor/pfdtool/pfdtool.csproj" />
   </ItemGroup>
 
   <!--
