@@ -424,9 +424,28 @@ namespace TrophyPrompt.ViewModels
             });
         }
 
+        // Clears the lists and frees the icon bitmaps afterwards (deferred so the
+        // UI has detached the rows before their images are disposed).
+        private void ClearTrophies()
+        {
+            List<TrophyItemViewModel> old = Trophies.ToList();
+            Trophies.Clear();
+            FilteredTrophies.Clear();
+            if (old.Count > 0)
+            {
+                Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (TrophyItemViewModel t in old)
+                    {
+                        t.ReleaseIcon();
+                    }
+                }, DispatcherPriority.Background);
+            }
+        }
+
         private void RebuildTrophyList()
         {
-            Trophies.Clear();
+            ClearTrophies();
             if (_tconf == null || _tpsn == null || _tusr == null)
             {
                 ApplyFilter();
@@ -1101,7 +1120,7 @@ namespace TrophyPrompt.ViewModels
             DeleteTempRoot(tempToDelete);
             void clear()
             {
-                Trophies.Clear();
+                ClearTrophies();
                 ApplyFilter();
                 GameTitle = string.Empty;
                 TitleId = string.Empty;
