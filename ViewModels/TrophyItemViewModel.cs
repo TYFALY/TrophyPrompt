@@ -119,6 +119,14 @@ namespace TrophyPrompt.ViewModels
             get { return TimestampText; }
         }
 
+        // Avalonia bitmaps hold unmanaged memory; release it when the row is discarded.
+        public void ReleaseIcon()
+        {
+            Bitmap old = TrophyIcon;
+            TrophyIcon = null;
+            old?.Dispose();
+        }
+
         public void LoadIcon(string pngPath)
         {
             try
