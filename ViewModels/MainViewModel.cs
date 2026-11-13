@@ -1032,6 +1032,7 @@ namespace TrophyPrompt.ViewModels
             bool needBackup = !_backupDone;
             string error = null;
             string backup = null;
+            bool writingOriginals = false;
             await Task.Run(() =>
             {
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
@@ -1046,6 +1047,7 @@ namespace TrophyPrompt.ViewModels
                     {
                         backup = TrophyUtility.BackupTrophyData(path);
                     }
+                    writingOriginals = true;
                     TrophyUtility.CopyTrophyData(encPathTemp, path, true);
                 }
                 catch (Exception ex)
@@ -1055,19 +1057,35 @@ namespace TrophyPrompt.ViewModels
                 }
                 finally
                 {
-                    TrophyUtility.DeleteDirectory(encPathTemp);
+                    if (!TrophyUtility.TryDeleteDirectory(encPathTemp))
+                    {
+                        LogDiag("Could not delete temp folder '" + encPathTemp + "'.");
+                    }
                 }
             });
-            if (error != null)
-            {
-                StatusMessage = "Save failed — your original trophy folder was not changed.";
-                RaiseAlert("Save failed", error);
-                return false;
-            }
+            // Record the backup even when the save failed afterwards: it holds the
+            // untouched originals, and a later save must not "back up" a folder
+            // that a failed copy left half-overwritten.
             if (backup != null)
             {
                 _backupDone = true;
                 LastBackupPath = backup;
+            }
+            if (error != null)
+            {
+                if (writingOriginals)
+                {
+                    string restoreFrom = string.IsNullOrEmpty(LastBackupPath) ? "your backup" : LastBackupPath;
+                    StatusMessage = "Save failed while writing the trophy folder — restore it from " + restoreFrom + ".";
+                    RaiseAlert("Save failed", error + Environment.NewLine + Environment.NewLine +
+                        "Some trophy files may already have been overwritten. The originals are in " + restoreFrom + ".");
+                }
+                else
+                {
+                    StatusMessage = "Save failed — your original trophy folder was not changed.";
+                    RaiseAlert("Save failed", error);
+                }
+                return false;
             }
             _haveBeenEdited = false;
             RebuildTrophyList();
@@ -1125,7 +1143,10 @@ namespace TrophyPrompt.ViewModels
                 }
                 finally
                 {
-                    TrophyUtility.DeleteDirectory(encPathTemp);
+                    if (!TrophyUtility.TryDeleteDirectory(encPathTemp))
+                    {
+                        LogDiag("Could not delete temp folder '" + encPathTemp + "'.");
+                    }
                 }
             });
             if (error != null)

@@ -102,6 +102,31 @@ namespace TrophyPrompt.Tests
                 TrophyUtility.DeleteDirectory(Path.GetDirectoryName(dst));
             }
         }
+
+        [Fact]
+        public void TryDeleteDirectoryRemovesNestedTree()
+        {
+            string dir = TrophyUtility.GetTemporaryDirectory();
+            Directory.CreateDirectory(Path.Combine(dir, "sub"));
+            File.WriteAllText(Path.Combine(dir, "sub", "TROPTRNS.DAT"), "x");
+            Assert.True(TrophyUtility.TryDeleteDirectory(dir));
+            Assert.False(Directory.Exists(dir));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void TryDeleteDirectoryIgnoresEmptyPaths(string path)
+        {
+            Assert.True(TrophyUtility.TryDeleteDirectory(path));
+        }
+
+        [Fact]
+        public void TryDeleteDirectoryIgnoresMissingFolder()
+        {
+            string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Assert.True(TrophyUtility.TryDeleteDirectory(dir));
+        }
     }
 
     public class TimestampJsonTests

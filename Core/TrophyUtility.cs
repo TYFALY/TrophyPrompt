@@ -355,5 +355,20 @@ namespace TrophyPrompt.Core
                 Directory.Delete(path, true);
             }
         }
+
+        // Cleanup variant for finally blocks: a locked or vanished temp file must
+        // never replace the real outcome of the operation with an IOException.
+        public static bool TryDeleteDirectory(string path)
+        {
+            try
+            {
+                DeleteDirectory(path);
+                return true;
+            }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is ArgumentException)
+            {
+                return false;
+            }
+        }
     }
 }
