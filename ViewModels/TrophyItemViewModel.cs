@@ -122,64 +122,21 @@ namespace TrophyPrompt.ViewModels
         // Avalonia bitmaps hold unmanaged memory; release it when the row is discarded.
         public void ReleaseIcon()
         {
+            SetIcon(null);
+        }
+
+        // Takes ownership of the bitmap and disposes the one it replaces, so
+        // replacing an icon in place never leaks the old bitmap's native memory.
+        public void SetIcon(Bitmap icon)
+        {
             Bitmap old = TrophyIcon;
-            TrophyIcon = null;
+            if (ReferenceEquals(old, icon))
+            {
+                return;
+            }
+            TrophyIcon = icon;
+            OnPropertyChanged(nameof(IconImage));
             old?.Dispose();
-        }
-
-        public void LoadIcon(string pngPath)
-        {
-            try
-            {
-                if (File.Exists(pngPath))
-                {
-                    using (FileStream stream = File.OpenRead(pngPath))
-                    {
-                        LoadIcon(stream);
-                    }
-                }
-            }
-            catch
-            {
-                // Leave icon null on failure — grid shows fallback.
-            }
-        }
-
-        public void LoadIcon(Stream stream)
-        {
-            try
-            {
-                TrophyIcon = new Bitmap(stream);
-                OnPropertyChanged(nameof(TrophyIcon));
-                OnPropertyChanged(nameof(IconImage));
-            }
-            catch
-            {
-            }
-        }
-
-        public void LoadIcon(byte[] rawBytes)
-        {
-            if (rawBytes != null && rawBytes.Length > 0)
-            {
-                using (MemoryStream ms = new MemoryStream(rawBytes))
-                {
-                    LoadIcon(ms);
-                }
-            }
-        }
-
-        public void LoadIconFromBytes(byte[] rawBytes)
-        {
-            if (rawBytes != null && rawBytes.Length > 0)
-            {
-                using (MemoryStream ms = new MemoryStream(rawBytes))
-                {
-                    TrophyIcon = new Bitmap(ms);
-                }
-                OnPropertyChanged(nameof(TrophyIcon));
-                OnPropertyChanged(nameof(IconImage));
-            }
         }
 
         public void SetIconFromBytes(byte[] bytes)
@@ -188,32 +145,19 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            Bitmap icon = null;
             try
             {
                 using (MemoryStream ms = new MemoryStream(bytes))
                 {
-                    TrophyIcon = new Bitmap(ms);
+                    icon = new Bitmap(ms);
                 }
-                OnPropertyChanged(nameof(TrophyIcon));
-                OnPropertyChanged(nameof(IconImage));
             }
             catch
             {
-                TrophyIcon = null;
-                OnPropertyChanged(nameof(TrophyIcon));
-                OnPropertyChanged(nameof(IconImage));
+                // Corrupt PNG: leave the row without an icon, grid shows fallback.
             }
-        }
-
-        public void LoadBitmapIcon(byte[] rawBytes)
-        {
-            if (rawBytes != null && rawBytes.Length > 0)
-            {
-                using (MemoryStream stream = new MemoryStream(rawBytes))
-                {
-                    LoadIcon(stream);
-                }
-            }
+            SetIcon(icon);
         }
 
         public void RefreshDerived()
