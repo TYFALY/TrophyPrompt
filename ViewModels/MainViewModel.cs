@@ -41,6 +41,8 @@ namespace TrophyPrompt.ViewModels
         // rebuild the whole grid (and re-read every PNG icon) - was O(n^2).
         private bool _suspendRebuild;
         private bool _backupDone;
+        // Folder whose icons the current rows hold; rebuilds of the same folder reuse them.
+        private string _iconsPath = string.Empty;
 
         [ObservableProperty]
         private string _lastBackupPath = string.Empty;
@@ -428,6 +430,13 @@ namespace TrophyPrompt.ViewModels
         // UI has detached the rows before their images are disposed).
         private void ClearTrophies()
         {
+            ClearTrophies(null);
+        }
+
+        // keepIcons: icons moved to the rebuilt rows, keyed by trophy id. Old rows
+        // whose icon was moved are not disposed, the new row owns it now.
+        private void ClearTrophies(Dictionary<int, Avalonia.Media.Imaging.Bitmap> keepIcons)
+        {
             List<TrophyItemViewModel> old = Trophies.ToList();
             Trophies.Clear();
             FilteredTrophies.Clear();
@@ -437,6 +446,11 @@ namespace TrophyPrompt.ViewModels
                 {
                     foreach (TrophyItemViewModel t in old)
                     {
+                        if (keepIcons != null && t.TrophyIcon != null
+                            && keepIcons.TryGetValue(t.Id, out var kept) && ReferenceEquals(kept, t.TrophyIcon))
+                        {
+                            continue;
+                        }
                         t.ReleaseIcon();
                     }
                 }, DispatcherPriority.Background);
@@ -445,7 +459,23 @@ namespace TrophyPrompt.ViewModels
 
         private void RebuildTrophyList()
         {
-            ClearTrophies();
+            // Every single edit rebuilds the grid; re-reading and decoding every
+            // PNG each time was the dominant cost. Rows of the same open folder
+            // reuse the already decoded icons instead.
+            Dictionary<int, Avalonia.Media.Imaging.Bitmap> reusable = null;
+            if (_tconf != null && !string.IsNullOrEmpty(_path) && _iconsPath == _path && Trophies.Count > 0)
+            {
+                reusable = new Dictionary<int, Avalonia.Media.Imaging.Bitmap>(Trophies.Count);
+                foreach (TrophyItemViewModel t in Trophies)
+                {
+                    if (t.TrophyIcon != null)
+                    {
+                        reusable[t.Id] = t.TrophyIcon;
+                    }
+                }
+            }
+            ClearTrophies(reusable);
+            _iconsPath = _path;
             if (_tconf == null || _tpsn == null || _tusr == null)
             {
                 ApplyFilter();
@@ -483,12 +513,19 @@ namespace TrophyPrompt.ViewModels
                 {
                     vm.Group = "DLC" + _tconf[i].gid;
                 }
-                byte[] iconBytes = TrophyUtility.GetTrophyIconBytes(_path, _tconf[i].id);
-                if (iconBytes == null)
+                if (reusable != null && reusable.TryGetValue(i, out var cachedIcon))
                 {
-                    iconBytes = TrophyUtility.GetTrophyIconBytes(_pathTemp, _tconf[i].id);
+                    vm.SetIcon(cachedIcon);
                 }
-                vm.SetIconFromBytes(iconBytes);
+                else
+                {
+                    byte[] iconBytes = TrophyUtility.GetTrophyIconBytes(_path, _tconf[i].id);
+                    if (iconBytes == null)
+                    {
+                        iconBytes = TrophyUtility.GetTrophyIconBytes(_pathTemp, _tconf[i].id);
+                    }
+                    vm.SetIconFromBytes(iconBytes);
+                }
                 vm.RefreshDerived();
                 WireRowActions(vm);
                 Trophies.Add(vm);
