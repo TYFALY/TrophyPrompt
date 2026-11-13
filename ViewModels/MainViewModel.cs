@@ -397,7 +397,6 @@ namespace TrophyPrompt.ViewModels
                     _tconf = null;
                     _tpsn = null;
                     _tusr = null;
-                    GC.Collect();
                     LogDiag("OpenFolderAtAsync FileNotFound: " + ex.Message);
                     // Don't leave decrypted copies of a failed open lying in %TEMP%.
                     DeleteTempRoot(temp);
@@ -412,7 +411,6 @@ namespace TrophyPrompt.ViewModels
                     _tconf = null;
                     _tpsn = null;
                     _tusr = null;
-                    GC.Collect();
                     string msg = ex.Message;
                     LogDiag("OpenFolderAtAsync FAILED: " + ex.GetType().Name + ": " + msg);
                     // Don't leave decrypted copies of a failed open lying in %TEMP%.
