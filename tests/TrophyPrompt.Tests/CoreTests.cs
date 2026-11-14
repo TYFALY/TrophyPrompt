@@ -127,6 +127,51 @@ namespace TrophyPrompt.Tests
             string dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Assert.True(TrophyUtility.TryDeleteDirectory(dir));
         }
+
+        private static byte[] SfoBytes(int length, int offset)
+        {
+            byte[] data = new byte[length];
+            if (length >= 0x10)
+            {
+                BitConverter.GetBytes(offset).CopyTo(data, 0xC);
+            }
+            return data;
+        }
+
+        private static MemoryStream Sfo(int length, int offset)
+        {
+            return new MemoryStream(SfoBytes(length, offset));
+        }
+
+        [Fact]
+        public void ReadProfileIdReadsSixteenBytesAtOffset()
+        {
+            byte[] data = SfoBytes(0x40, 0x20);
+            for (int i = 0; i < 0x10; i++)
+            {
+                data[0x20 + i] = (byte)(i + 1);
+            }
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                byte[] id = TrophyUtility.ReadProfileId(ms, "p.sfo");
+                Assert.Equal(Enumerable.Range(1, 16).Select(i => (byte)i).ToArray(), id);
+                Assert.True(ms.CanRead); // caller owns the stream
+            }
+        }
+
+        [Theory]
+        [InlineData(0, 0)]                // empty file
+        [InlineData(8, 0)]                // shorter than the header
+        [InlineData(0x40, -1)]            // negative offset
+        [InlineData(0x40, 0x38)]          // id would run past the end
+        [InlineData(0x40, int.MaxValue)]  // used to overflow past the length check
+        public void ReadProfileIdRejectsInvalidFiles(int length, int offset)
+        {
+            using (MemoryStream ms = Sfo(length, offset))
+            {
+                Assert.Throws<InvalidDataException>(() => TrophyUtility.ReadProfileId(ms, "p.sfo"));
+            }
+        }
     }
 
     public class TimestampJsonTests

@@ -190,16 +190,9 @@ namespace TrophyPrompt.Core
                 // directory component so a crafted name can't escape that folder.
                 profile = Path.Combine(ProfilesDirectory(), Path.GetFileName(profile));
                 byte[] profileId;
-                using (var br = new BinaryReader(new FileStream(profile, FileMode.Open, FileAccess.Read)))
+                using (var fs = new FileStream(profile, FileMode.Open, FileAccess.Read))
                 {
-                    br.BaseStream.Position = 0xC;
-                    int offset = br.ReadInt32();
-                    if (offset < 0 || offset + 0x10 > br.BaseStream.Length)
-                    {
-                        throw new InvalidDataException("Profile PARAM.SFO is invalid: " + Path.GetFileName(profile));
-                    }
-                    br.BaseStream.Position = offset;
-                    profileId = br.ReadBytes(0x10);
+                    profileId = ReadProfileId(fs, Path.GetFileName(profile));
                 }
                 using (var bw = new BinaryWriter(new FileStream(Path.Combine(saveDir, "PARAM.SFO"), FileMode.Open, FileAccess.Write)))
                 {
@@ -210,6 +203,28 @@ namespace TrophyPrompt.Core
             // update PFD, then encrypt savedata
             RunPfdtool("-u", saveDir);
             RunPfdtool("-e", saveDir, "TROPTRNS.DAT");
+        }
+
+        // Reads the 16-byte account id from a profile PARAM.SFO. The offset is
+        // checked in 64-bit so a huge value can't wrap past the length check, and
+        // a file too short for the header fails as invalid instead of EndOfStream.
+        public static byte[] ReadProfileId(Stream stream, string name)
+        {
+            if (stream.Length < 0x10)
+            {
+                throw new InvalidDataException("Profile PARAM.SFO is invalid: " + name);
+            }
+            using (var br = new BinaryReader(stream, System.Text.Encoding.UTF8, true))
+            {
+                br.BaseStream.Position = 0xC;
+                int offset = br.ReadInt32();
+                if (offset < 0 || (long)offset + 0x10 > br.BaseStream.Length)
+                {
+                    throw new InvalidDataException("Profile PARAM.SFO is invalid: " + name);
+                }
+                br.BaseStream.Position = offset;
+                return br.ReadBytes(0x10);
+            }
         }
 
         // Copies the original (encrypted) trophy files somewhere safe before the
