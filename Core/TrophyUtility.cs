@@ -227,6 +227,18 @@ namespace TrophyPrompt.Core
             }
         }
 
+        // TROPUSR must hold a type and a time entry for every trophy TROPCONF
+        // lists; a mismatched or truncated folder used to open and then crash
+        // the UI thread with an index error while building the trophy grid.
+        public static void EnsureTablesCover(int trophyCount, int typeCount, int timeCount)
+        {
+            if (typeCount < trophyCount || timeCount < trophyCount)
+            {
+                throw new InvalidDataException("TROPUSR.DAT does not match TROPCONF.SFM (" + trophyCount +
+                    " trophies, but " + Math.Min(typeCount, timeCount) + " entries). The trophy folder is corrupt or mixed from different games.");
+            }
+        }
+
         // Copies the original (encrypted) trophy files somewhere safe before the
         // first overwrite, so a bad save or a bad LLM import is always reversible.
         public static string BackupTrophyData(string trophyDir)

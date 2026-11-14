@@ -360,6 +360,7 @@ namespace TrophyPrompt.ViewModels
                     TROPCONF conf = new TROPCONF(temp, IsRpcs3Format);
                     TROPTRNS trns = new TROPTRNS(temp, IsRpcs3Format);
                     TROPUSR usr = new TROPUSR(temp, IsRpcs3Format);
+                    TrophyUtility.EnsureTablesCover(conf.Count, usr.trophyTypeTable.Count, usr.trophyTimeInfoTable.Count);
 
                     _path = folder;
                     _pathTemp = temp;

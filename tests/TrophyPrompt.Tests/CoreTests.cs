@@ -172,6 +172,24 @@ namespace TrophyPrompt.Tests
                 Assert.Throws<InvalidDataException>(() => TrophyUtility.ReadProfileId(ms, "p.sfo"));
             }
         }
+
+        [Theory]
+        [InlineData(10, 10, 10)]
+        [InlineData(10, 12, 11)]
+        [InlineData(0, 0, 0)]
+        public void EnsureTablesCoverAcceptsMatchingTables(int trophies, int types, int times)
+        {
+            TrophyUtility.EnsureTablesCover(trophies, types, times);
+        }
+
+        [Theory]
+        [InlineData(10, 9, 10)]
+        [InlineData(10, 10, 9)]
+        [InlineData(10, 0, 0)]
+        public void EnsureTablesCoverRejectsShortTables(int trophies, int types, int times)
+        {
+            Assert.Throws<InvalidDataException>(() => TrophyUtility.EnsureTablesCover(trophies, types, times));
+        }
     }
 
     public class TimestampJsonTests
