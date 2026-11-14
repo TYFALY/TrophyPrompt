@@ -1602,18 +1602,17 @@ namespace TrophyPrompt.ViewModels
             {
                 sb.AppendLine(t.Id + "," + CsvField.Escape(t.Name) + "," + t.TypeName + "," + (t.IsHidden ? "yes" : "no") + "," + (t.IsUnlocked ? "yes" : "no") + "," + (t.IsSync ? "yes" : "no") + "," + t.TimestampText + "," + t.Group);
             }
-            string lp = file.TryGetLocalPath();
-            if (!string.IsNullOrEmpty(lp))
+            // A locked or read-only target used to throw out of the command,
+            // and with no global handler that took the whole app down.
+            try
             {
-                File.WriteAllText(lp, sb.ToString(), Encoding.UTF8);
+                await WriteExportAsync(file, sb.ToString());
             }
-            else
+            catch (Exception ex)
             {
-                using (Stream s = await file.OpenWriteAsync())
-                using (StreamWriter w = new StreamWriter(s))
-                {
-                    await w.WriteAsync(sb.ToString());
-                }
+                StatusMessage = "CSV export failed: " + ex.Message;
+                LogDiag("Export CSV FAILED: " + ex.GetType().Name + ": " + ex.Message);
+                return;
             }
             StatusMessage = "Exported CSV.";
         }
@@ -1648,20 +1647,34 @@ namespace TrophyPrompt.ViewModels
             {
                 sb.AppendLine("#" + t.Id + " [" + t.TypeName + "] " + t.Name + " — " + (t.IsUnlocked ? t.TimestampText : "locked") + (t.IsSync ? " (synced)" : string.Empty));
             }
+            // A locked or read-only target used to throw out of the command,
+            // and with no global handler that took the whole app down.
+            try
+            {
+                await WriteExportAsync(file, sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Text export failed: " + ex.Message;
+                LogDiag("Export Text FAILED: " + ex.GetType().Name + ": " + ex.Message);
+                return;
+            }
+            StatusMessage = "Exported text log.";
+        }
+
+        private static async Task WriteExportAsync(IStorageFile file, string content)
+        {
             string lp = file.TryGetLocalPath();
             if (!string.IsNullOrEmpty(lp))
             {
-                File.WriteAllText(lp, sb.ToString(), Encoding.UTF8);
+                File.WriteAllText(lp, content, Encoding.UTF8);
+                return;
             }
-            else
+            using (Stream s = await file.OpenWriteAsync())
+            using (StreamWriter w = new StreamWriter(s))
             {
-                using (Stream s = await file.OpenWriteAsync())
-                using (StreamWriter w = new StreamWriter(s))
-                {
-                    await w.WriteAsync(sb.ToString());
-                }
+                await w.WriteAsync(content);
             }
-            StatusMessage = "Exported text log.";
         }
     }
 }
