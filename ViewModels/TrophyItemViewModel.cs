@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -85,16 +86,23 @@ namespace TrophyPrompt.ViewModels
             }
         }
 
+        // Shared immutable brushes: the getter runs for every row on every grid
+        // rebuild, and parsing + allocating a new brush each time was wasted work.
+        private static readonly IBrush PlatinumBrush = new ImmutableSolidColorBrush(Color.Parse("#E5E4E2"));
+        private static readonly IBrush GoldBrush = new ImmutableSolidColorBrush(Color.Parse("#FFD700"));
+        private static readonly IBrush SilverBrush = new ImmutableSolidColorBrush(Color.Parse("#C0C0C0"));
+        private static readonly IBrush BronzeBrush = new ImmutableSolidColorBrush(Color.Parse("#CD7F32"));
+
         public IBrush TypeBadgeBrush
         {
             get
             {
                 switch (TrophyType)
                 {
-                    case TropType.Platinum: return new SolidColorBrush(Color.Parse("#E5E4E2"));
-                    case TropType.Gold: return new SolidColorBrush(Color.Parse("#FFD700"));
-                    case TropType.Silver: return new SolidColorBrush(Color.Parse("#C0C0C0"));
-                    default: return new SolidColorBrush(Color.Parse("#CD7F32"));
+                    case TropType.Platinum: return PlatinumBrush;
+                    case TropType.Gold: return GoldBrush;
+                    case TropType.Silver: return SilverBrush;
+                    default: return BronzeBrush;
                 }
             }
         }
