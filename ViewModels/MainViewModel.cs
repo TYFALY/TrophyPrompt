@@ -32,6 +32,9 @@ namespace TrophyPrompt.ViewModels
         private string _path = string.Empty;
         private string _pathTemp = string.Empty;
         private bool _haveBeenEdited;
+        // Bumped on every edit; a save only clears _haveBeenEdited when no edit
+        // landed while it ran in the background.
+        private int _editGeneration;
         private DateTime _ps3Time = new DateTime(MINIMUM_POSSIBLE_DATE_TICKS);
         private DateTime _lastSyncTrophyTime = new DateTime(MINIMUM_POSSIBLE_DATE_TICKS);
         private DateTime _randomEndTime = DateTime.Now;
@@ -684,7 +687,7 @@ namespace TrophyPrompt.ViewModels
             {
                 _tpsn.PutTrophy(trophyId, _tusr.trophyTypeTable[trophyId].Type, time);
                 _tusr.UnlockTrophy(trophyId, time);
-                _haveBeenEdited = true;
+                MarkEdited();
                 RebuildPreservingSelection(trophyId);
                 return true;
             }
@@ -715,7 +718,7 @@ namespace TrophyPrompt.ViewModels
                 TROPUSR.TrophyTimeInfo tti = _tusr.trophyTimeInfoTable[trophyId];
                 tti.Time = time;
                 _tusr.trophyTimeInfoTable[trophyId] = tti;
-                _haveBeenEdited = true;
+                MarkEdited();
                 RebuildPreservingSelection(trophyId);
                 return true;
             }
@@ -743,7 +746,7 @@ namespace TrophyPrompt.ViewModels
             {
                 _tpsn.DeleteTrophyByID(trophyId);
                 _tusr.LockTrophy(trophyId);
-                _haveBeenEdited = true;
+                MarkEdited();
                 RebuildPreservingSelection(trophyId);
                 return true;
             }
@@ -778,7 +781,7 @@ namespace TrophyPrompt.ViewModels
                 _tusr.LockTrophy(ti.Value.TrophyID);
                 ti = _tpsn.PopTrophy();
             }
-            _haveBeenEdited = true;
+            MarkEdited();
             RebuildTrophyList();
             StatusMessage = "All editable trophies locked.";
         }
@@ -825,7 +828,7 @@ namespace TrophyPrompt.ViewModels
                     _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, t);
                 }
             }
-            _haveBeenEdited = true;
+            MarkEdited();
             RebuildTrophyList();
             StatusMessage = "Instant platinum applied.";
         }
@@ -963,6 +966,12 @@ namespace TrophyPrompt.ViewModels
             }
         }
 
+        private void MarkEdited()
+        {
+            _haveBeenEdited = true;
+            _editGeneration++;
+        }
+
         private DateTime CurrentTime(int id)
         {
             return _tpsn[id].HasValue ? _tpsn[id].Value.Time : _tusr.trophyTimeInfoTable[id].Time;
@@ -1029,6 +1038,12 @@ namespace TrophyPrompt.ViewModels
             string pathTemp = _pathTemp;
             string profile = SelectedProfile ?? "Default Profile";
             bool needBackup = !_backupDone;
+            // The UI stays usable while pfdtool runs, so the folder can be closed
+            // or another one opened mid-save. Work on this folder's models only,
+            // and never apply its outcome (backup flag, saved state) to another.
+            TROPTRNS tpsn = _tpsn;
+            TROPUSR tusr = _tusr;
+            int generation = _editGeneration;
             string error = null;
             string backup = null;
             bool writingOriginals = false;
@@ -1037,8 +1052,8 @@ namespace TrophyPrompt.ViewModels
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
                 try
                 {
-                    _tpsn.Save();
-                    _tusr.Save();
+                    tpsn.Save();
+                    tusr.Save();
                     TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
                     TrophyUtility.encryptTrophy(encPathTemp, profile);
                     // Back up the untouched originals before the first overwrite.
@@ -1062,6 +1077,19 @@ namespace TrophyPrompt.ViewModels
                     }
                 }
             });
+            bool sameFolder = _isOpen && ReferenceEquals(_tpsn, tpsn) && _path == path;
+            if (!sameFolder)
+            {
+                if (backup != null)
+                {
+                    LastBackupPath = backup;
+                }
+                StatusMessage = error != null
+                    ? "Save of " + path + " failed: " + error
+                    : (backup != null ? "Saved " + path + ". Original backed up to " + backup : "Saved " + path + ".");
+                LogDiag("Save finished after the folder was closed or replaced: '" + path + "', error=" + (error ?? "none") + ".");
+                return error == null;
+            }
             // Record the backup even when the save failed afterwards: it holds the
             // untouched originals, and a later save must not "back up" a folder
             // that a failed copy left half-overwritten.
@@ -1086,7 +1114,8 @@ namespace TrophyPrompt.ViewModels
                 }
                 return false;
             }
-            _haveBeenEdited = false;
+            // An edit made while the save ran is not in the written files.
+            _haveBeenEdited = _editGeneration != generation;
             RebuildTrophyList();
             PfdStatus = "Saved + re-signed (PFD)";
             StatusMessage = backup != null ? "Saved. Original backed up to " + backup : "Saved.";
@@ -1121,16 +1150,22 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            if (!_isOpen)
+            {
+                return;
+            }
             string pathTemp = _pathTemp;
             string profile = SelectedProfile ?? "Default Profile";
+            TROPTRNS tpsn = _tpsn;
+            TROPUSR tusr = _tusr;
             string error = null;
             await Task.Run(() =>
             {
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
                 try
                 {
-                    _tpsn.Save();
-                    _tusr.Save();
+                    tpsn.Save();
+                    tusr.Save();
                     TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
                     TrophyUtility.encryptTrophy(encPathTemp, profile);
                     TrophyUtility.CopyTrophyData(encPathTemp, targetDir, true);
