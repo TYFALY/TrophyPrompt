@@ -46,6 +46,10 @@ namespace TrophyPrompt.ViewModels
         private bool _backupDone;
         // Folder whose icons the current rows hold; rebuilds of the same folder reuse them.
         private string _iconsPath = string.Empty;
+        // Bumped by every open. A drop or Ctrl+O while a slow decrypt still runs
+        // starts a second open; only the newest one may publish its folder.
+        private int _openGeneration;
+        private readonly object _openLock = new object();
 
         [ObservableProperty]
         private string _lastBackupPath = string.Empty;
@@ -345,6 +349,7 @@ namespace TrophyPrompt.ViewModels
         {
             StatusMessage = "Loading " + folder + " ...";
             LogDiag("OpenFolderAtAsync: loading '" + folder + "'.");
+            int generation = System.Threading.Interlocked.Increment(ref _openGeneration);
             if (_isOpen)
             {
                 // Await the close on the UI thread BEFORE touching temp:
@@ -365,25 +370,48 @@ namespace TrophyPrompt.ViewModels
                     TROPUSR usr = new TROPUSR(temp, IsRpcs3Format);
                     TrophyUtility.EnsureTablesCover(conf.Count, usr.trophyTypeTable.Count, usr.trophyTimeInfoTable.Count);
 
-                    _path = folder;
-                    _pathTemp = temp;
-                    _tconf = conf;
-                    _tpsn = trns;
-                    _tusr = usr;
-
-                    _lastSyncTrophyTime = usr.LastSyncTime;
-                    if (DateTime.Compare(trns.LastSyncTime, usr.LastSyncTime) > 0)
+                    string replacedTemp = null;
+                    lock (_openLock)
                     {
-                        _lastSyncTrophyTime = trns.LastSyncTime;
+                        if (generation != _openGeneration)
+                        {
+                            // A newer open started meanwhile; it owns the window now.
+                            LogDiag("OpenFolderAtAsync: '" + folder + "' superseded by a newer open, discarded.");
+                            DeleteTempRoot(temp);
+                            return;
+                        }
+                        // An older open that finished after this one skipped its
+                        // close: drop its decrypted copy instead of leaking it.
+                        if (!string.IsNullOrEmpty(_pathTemp) && _pathTemp != temp)
+                        {
+                            replacedTemp = _pathTemp;
+                        }
+
+                        _path = folder;
+                        _pathTemp = temp;
+                        _tconf = conf;
+                        _tpsn = trns;
+                        _tusr = usr;
+
+                        _lastSyncTrophyTime = usr.LastSyncTime;
+                        if (DateTime.Compare(trns.LastSyncTime, usr.LastSyncTime) > 0)
+                        {
+                            _lastSyncTrophyTime = trns.LastSyncTime;
+                        }
+                        _ps3Time = _lastSyncTrophyTime;
+                        _randomEndTime = DateTime.Now;
+                        _isOpen = true;
+                        _haveBeenEdited = false;
+                        _backupDone = false;
                     }
-                    _ps3Time = _lastSyncTrophyTime;
-                    _randomEndTime = DateTime.Now;
-                    _isOpen = true;
-                    _haveBeenEdited = false;
-                    _backupDone = false;
+                    DeleteTempRoot(replacedTemp);
 
                     Dispatcher.UIThread.Post(() =>
                     {
+                        if (generation != _openGeneration)
+                        {
+                            return;
+                        }
                         _isOpen = true;
                         CurrentFolder = folder;
                         RandomStartTime = _ps3Time;
@@ -396,11 +424,12 @@ namespace TrophyPrompt.ViewModels
                         LogDiag("OpenFolderAtAsync: OK '" + conf.title_name + "' (" + conf.npcommid + "), trophies=" + _tconf.Count + ".");
                     });
                 }
+                catch (Exception ex) when (IsSupersededOpen(generation, folder, temp, ex))
+                {
+                }
                 catch (FileNotFoundException ex)
                 {
-                    _tconf = null;
-                    _tpsn = null;
-                    _tusr = null;
+                    ResetAfterFailedOpen();
                     LogDiag("OpenFolderAtAsync FileNotFound: " + ex.Message);
                     // Don't leave decrypted copies of a failed open lying in %TEMP%.
                     DeleteTempRoot(temp);
@@ -412,9 +441,7 @@ namespace TrophyPrompt.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    _tconf = null;
-                    _tpsn = null;
-                    _tusr = null;
+                    ResetAfterFailedOpen();
                     string msg = ex.Message;
                     LogDiag("OpenFolderAtAsync FAILED: " + ex.GetType().Name + ": " + msg);
                     // Don't leave decrypted copies of a failed open lying in %TEMP%.
@@ -426,6 +453,39 @@ namespace TrophyPrompt.ViewModels
                     RaiseAlert("Open folder failed", msg);
                 }
             });
+        }
+
+        // Normally the previous folder was closed before this open started, but an
+        // older open finishing late may have published its folder meanwhile:
+        // drop it too so IsOpen never stays true over null tables.
+        private void ResetAfterFailedOpen()
+        {
+            string stale;
+            lock (_openLock)
+            {
+                stale = _pathTemp;
+                _tconf = null;
+                _tpsn = null;
+                _tusr = null;
+                _path = string.Empty;
+                _pathTemp = string.Empty;
+                _isOpen = false;
+                _haveBeenEdited = false;
+            }
+            DeleteTempRoot(stale);
+        }
+
+        // A failed open that a newer one replaced must not clear the newer
+        // folder's models (that left IsOpen true with null tables) or alert.
+        private bool IsSupersededOpen(int generation, string folder, string temp, Exception ex)
+        {
+            if (generation == System.Threading.Volatile.Read(ref _openGeneration))
+            {
+                return false;
+            }
+            LogDiag("OpenFolderAtAsync: superseded open of '" + folder + "' failed: " + ex.GetType().Name + ": " + ex.Message);
+            DeleteTempRoot(temp);
+            return true;
         }
 
         // Clears the lists and frees the icon bitmaps afterwards (deferred so the
