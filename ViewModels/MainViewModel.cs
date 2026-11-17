@@ -50,6 +50,9 @@ namespace TrophyPrompt.ViewModels
         // starts a second open; only the newest one may publish its folder.
         private int _openGeneration;
         private readonly object _openLock = new object();
+        // One save at a time: a second Ctrl+S (or Save from the close prompt)
+        // while pfdtool still ran wrote the same temp files concurrently.
+        private readonly System.Threading.SemaphoreSlim _saveLock = new System.Threading.SemaphoreSlim(1, 1);
 
         [ObservableProperty]
         private string _lastBackupPath = string.Empty;
@@ -1093,6 +1096,25 @@ namespace TrophyPrompt.ViewModels
             {
                 return true;
             }
+            TROPTRNS requested = _tpsn;
+            await _saveLock.WaitAsync();
+            try
+            {
+                // The folder was closed or replaced while an earlier save ran.
+                if (!_isOpen || !ReferenceEquals(_tpsn, requested))
+                {
+                    return true;
+                }
+                return await SaveCurrentAsync();
+            }
+            finally
+            {
+                _saveLock.Release();
+            }
+        }
+
+        private async Task<bool> SaveCurrentAsync()
+        {
             StatusMessage = "Saving ...";
             string path = _path;
             string pathTemp = _pathTemp;
@@ -1107,13 +1129,19 @@ namespace TrophyPrompt.ViewModels
             string error = null;
             string backup = null;
             bool writingOriginals = false;
+            // Serialize the models here, on the UI thread: edits made while the
+            // save runs mutate the same tables and must not interleave with it.
+            if (!TrySerializeModels(tpsn, tusr, out error))
+            {
+                StatusMessage = "Save failed — your original trophy folder was not changed.";
+                RaiseAlert("Save failed", error);
+                return false;
+            }
             await Task.Run(() =>
             {
                 string encPathTemp = TrophyUtility.GetTemporaryDirectory();
                 try
                 {
-                    tpsn.Save();
-                    tusr.Save();
                     TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
                     TrophyUtility.encryptTrophy(encPathTemp, profile);
                     // Back up the untouched originals before the first overwrite.
@@ -1214,35 +1242,46 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
-            string pathTemp = _pathTemp;
-            string profile = SelectedProfile ?? "Default Profile";
-            TROPTRNS tpsn = _tpsn;
-            TROPUSR tusr = _tusr;
             string error = null;
-            await Task.Run(() =>
+            await _saveLock.WaitAsync();
+            try
             {
-                string encPathTemp = TrophyUtility.GetTemporaryDirectory();
-                try
+                if (!_isOpen)
                 {
-                    tpsn.Save();
-                    tusr.Save();
-                    TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
-                    TrophyUtility.encryptTrophy(encPathTemp, profile);
-                    TrophyUtility.CopyTrophyData(encPathTemp, targetDir, true);
+                    return;
                 }
-                catch (Exception ex)
+                string pathTemp = _pathTemp;
+                string profile = SelectedProfile ?? "Default Profile";
+                if (TrySerializeModels(_tpsn, _tusr, out error))
                 {
-                    error = ex.Message;
-                    LogDiag("SaveAs FAILED: " + ex.GetType().Name + ": " + ex.Message);
-                }
-                finally
-                {
-                    if (!TrophyUtility.TryDeleteDirectory(encPathTemp))
+                    await Task.Run(() =>
                     {
-                        LogDiag("Could not delete temp folder '" + encPathTemp + "'.");
-                    }
+                        string encPathTemp = TrophyUtility.GetTemporaryDirectory();
+                        try
+                        {
+                            TrophyUtility.CopyTrophyData(pathTemp, encPathTemp, false);
+                            TrophyUtility.encryptTrophy(encPathTemp, profile);
+                            TrophyUtility.CopyTrophyData(encPathTemp, targetDir, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex.Message;
+                            LogDiag("SaveAs FAILED: " + ex.GetType().Name + ": " + ex.Message);
+                        }
+                        finally
+                        {
+                            if (!TrophyUtility.TryDeleteDirectory(encPathTemp))
+                            {
+                                LogDiag("Could not delete temp folder '" + encPathTemp + "'.");
+                            }
+                        }
+                    });
                 }
-            });
+            }
+            finally
+            {
+                _saveLock.Release();
+            }
             if (error != null)
             {
                 StatusMessage = "Save As failed.";
@@ -1250,6 +1289,24 @@ namespace TrophyPrompt.ViewModels
                 return;
             }
             StatusMessage = "Saved copy to " + targetDir;
+        }
+
+        // Writes the in-memory tables into the decrypted temp copy.
+        private static bool TrySerializeModels(TROPTRNS tpsn, TROPUSR tusr, out string error)
+        {
+            try
+            {
+                tpsn.Save();
+                tusr.Save();
+                error = null;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+                LogDiag("Save FAILED while writing the decrypted copy: " + ex.GetType().Name + ": " + ex.Message);
+                return false;
+            }
         }
 
         [RelayCommand]
