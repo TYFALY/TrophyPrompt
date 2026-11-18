@@ -862,8 +862,12 @@ namespace TrophyPrompt.ViewModels
                 return;
             }
             Random rand = Random.Shared;
+            // Bound by TROPCONF: TROPUSR may hold more slots than the game has
+            // trophies, and those used to be unlocked as phantom trophies (or
+            // indexed TROPCONF out of range and crashed the command).
+            int count = _tconf.Count;
             int i;
-            for (i = 1; i < _tusr.trophyTimeInfoTable.Count && _tconf[i].gid == 0; i++)
+            for (i = 1; i < count && _tconf[i].gid == 0; i++)
             {
                 if (!IsTrophyGot(i))
                 {
@@ -874,13 +878,13 @@ namespace TrophyPrompt.ViewModels
                     _tpsn.PutTrophy(i, _tusr.trophyTypeTable[i].Type, t);
                 }
             }
-            if (!IsTrophyGot(0))
+            if (count > 0 && !IsTrophyGot(0))
             {
                 DateTime last = LastTrophyTime().AddSeconds(1);
                 _tusr.UnlockTrophy(0, last);
                 _tpsn.PutTrophy(0, _tusr.trophyTypeTable[0].Type, last);
             }
-            for (; i < _tusr.trophyTimeInfoTable.Count; i++)
+            for (; i < count; i++)
             {
                 if (!IsTrophyGot(i))
                 {
