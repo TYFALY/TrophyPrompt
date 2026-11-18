@@ -1070,9 +1070,23 @@ namespace TrophyPrompt.ViewModels
         // Called by the window on exit so decrypted temp copies never outlive the app.
         public void Shutdown()
         {
-            if (_isOpen)
+            CancelPendingOpenAndClose(false);
+        }
+
+        // An open still decrypting when the user closes (or quits) used to
+        // publish its folder afterwards: the closed folder came back, or its
+        // decrypted copy was left behind. Bumping the generation under the
+        // open lock makes that open discard its result and delete its temp copy.
+        private void CancelPendingOpenAndClose(bool refreshUi)
+        {
+            lock (_openLock)
             {
-                CloseFileInternal(false);
+                System.Threading.Interlocked.Increment(ref _openGeneration);
+                // Close (Ctrl+W) always resets the UI, including a "Loading ..." status.
+                if (refreshUi || _isOpen || !string.IsNullOrEmpty(_pathTemp))
+                {
+                    CloseFileInternal(refreshUi);
+                }
             }
         }
 
@@ -1316,7 +1330,7 @@ namespace TrophyPrompt.ViewModels
         [RelayCommand]
         private void CloseFile()
         {
-            CloseFileInternal(true);
+            CancelPendingOpenAndClose(true);
         }
 
         private void CloseFileInternal(bool refreshUi)
