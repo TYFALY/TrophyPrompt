@@ -37,6 +37,41 @@ namespace TrophyPrompt.Tests
         }
     }
 
+    public class TrophyMatcherTests
+    {
+        private static readonly TrophyMatcher Matcher = new TrophyMatcher(new[] { "Platinum", "First Steps", "Collector", "Collector" });
+
+        [Fact]
+        public void EntriesWithoutIdMatchByName()
+        {
+            // A JSON entry with no "Id" deserializes as Id 0 (the platinum).
+            TrophyDto dto = JsonConvert.DeserializeObject<TrophyDto>("{\"Name\":\"first steps\",\"Unlocked\":true}");
+            Assert.Equal(0, dto.Id);
+            Assert.Equal(1, Matcher.Resolve(dto.Id, dto.Name));
+        }
+
+        [Theory]
+        [InlineData(1, "First Steps", 1)]   // id and name agree
+        [InlineData(1, null, 1)]            // no name: trust the id
+        [InlineData(1, "First Step!", 1)]   // reworded name: keep the id
+        [InlineData(0, "Platinum", 0)]
+        [InlineData(2, "First Steps", 1)]   // name points elsewhere: name wins
+        [InlineData(3, "Collector", 3)]     // duplicate names: the id picks which
+        [InlineData(9, "Collector", 2)]     // out-of-range id: first name match
+        [InlineData(-1, "Unknown", -1)]
+        [InlineData(4, null, -1)]
+        public void ResolvesIdAndNameConsistently(int id, string name, int expected)
+        {
+            Assert.Equal(expected, Matcher.Resolve(id, name));
+        }
+
+        [Fact]
+        public void EmptyListMatchesNothing()
+        {
+            Assert.Equal(-1, new TrophyMatcher(null).Resolve(0, "Platinum"));
+        }
+    }
+
     public class CsvFieldTests
     {
         [Theory]

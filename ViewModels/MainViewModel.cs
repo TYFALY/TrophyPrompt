@@ -1461,26 +1461,6 @@ namespace TrophyPrompt.ViewModels
         }
 
         // ---------- Exporters ----------
-        private int FindTrophyIndex(TrophyDto trophy)
-        {
-            if (trophy == null || _tconf == null)
-            {
-                return -1;
-            }
-            if (trophy.Id >= 0 && trophy.Id < _tconf.Count)
-            {
-                return trophy.Id;
-            }
-            for (int i = 0; i < _tconf.Count; i++)
-            {
-                if (string.Equals(_tconf[i].name, trophy.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
         private List<string> CheckChronology(IList<TrophyDto> list)
         {
             List<string> warnings = new List<string>();
@@ -1679,13 +1659,19 @@ namespace TrophyPrompt.ViewModels
                 }
                 var resolved = new List<(int Index, TrophyDto Dto)>();
                 var seen = new HashSet<int>();
+                var names = new List<string>(_tconf.Count);
+                for (int i = 0; i < _tconf.Count; i++)
+                {
+                    names.Add(_tconf[i].name);
+                }
+                var matcher = new TrophyMatcher(names);
                 foreach (TrophyDto t in list)
                 {
                     if (t == null)
                     {
                         continue;
                     }
-                    int idx = FindTrophyIndex(t);
+                    int idx = matcher.Resolve(t.Id, t.Name);
                     if (idx >= 0 && seen.Add(idx))
                     {
                         resolved.Add((idx, t));

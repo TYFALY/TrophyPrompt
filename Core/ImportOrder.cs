@@ -29,6 +29,47 @@ namespace TrophyPrompt.Core
         }
     }
 
+    // Maps an imported trophy entry to its TROPCONF index.
+    //
+    // A JSON entry without "Id" deserializes as Id 0, so trusting any in-range
+    // Id sent every such entry to the platinum and dropped the rest as
+    // duplicates. The Id wins only when its trophy's name agrees (or no name
+    // was given); otherwise an exact name match is used, and an in-range Id is
+    // still the last resort for a slightly reworded name.
+    public sealed class TrophyMatcher
+    {
+        private readonly IReadOnlyList<string> _names;
+        private readonly Dictionary<string, int> _byName;
+
+        public TrophyMatcher(IReadOnlyList<string> names)
+        {
+            _names = names ?? Array.Empty<string>();
+            _byName = new Dictionary<string, int>(_names.Count, StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < _names.Count; i++)
+            {
+                if (_names[i] != null)
+                {
+                    // First occurrence wins, like the old linear search.
+                    _byName.TryAdd(_names[i], i);
+                }
+            }
+        }
+
+        public int Resolve(int id, string name)
+        {
+            bool idInRange = id >= 0 && id < _names.Count;
+            if (idInRange && (string.IsNullOrEmpty(name) || string.Equals(_names[id], name, StringComparison.OrdinalIgnoreCase)))
+            {
+                return id;
+            }
+            if (!string.IsNullOrEmpty(name) && _byName.TryGetValue(name, out int byName))
+            {
+                return byName;
+            }
+            return idInRange ? id : -1;
+        }
+    }
+
     public static class CsvField
     {
         // RFC 4180 quoting plus a guard against spreadsheet formula injection:
