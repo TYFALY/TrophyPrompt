@@ -163,6 +163,34 @@ namespace TrophyPrompt.Tests
             Assert.True(TrophyUtility.TryDeleteDirectory(dir));
         }
 
+        [Fact]
+        public void IsSameDirectoryIgnoresTrailingSeparatorAndDotSegments()
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "NPWR00000_00");
+            Assert.True(TrophyUtility.IsSameDirectory(dir, dir + Path.DirectorySeparatorChar));
+            Assert.True(TrophyUtility.IsSameDirectory(dir, Path.Combine(dir, "sub", "..")));
+            Assert.True(TrophyUtility.IsSameDirectory(dir, Path.Combine(dir, ".")));
+        }
+
+        [Fact]
+        public void IsSameDirectoryRejectsOtherFolders()
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "NPWR00000_00");
+            Assert.False(TrophyUtility.IsSameDirectory(dir, dir + "_copy"));
+            Assert.False(TrophyUtility.IsSameDirectory(dir, Path.Combine(dir, "sub")));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void IsSameDirectoryRejectsEmptyPaths(string other)
+        {
+            string dir = Path.Combine(Path.GetTempPath(), "NPWR00000_00");
+            Assert.False(TrophyUtility.IsSameDirectory(dir, other));
+            Assert.False(TrophyUtility.IsSameDirectory(other, other));
+        }
+
         private static byte[] SfoBytes(int length, int offset)
         {
             byte[] data = new byte[length];

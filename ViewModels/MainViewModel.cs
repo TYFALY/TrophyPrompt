@@ -1260,6 +1260,13 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            // Picking the open folder itself overwrote the originals without
+            // the first-save backup; treat it as a normal Save instead.
+            if (TrophyUtility.IsSameDirectory(targetDir, _path))
+            {
+                await TrySaveAsync();
+                return;
+            }
             string error = null;
             await _saveLock.WaitAsync();
             try

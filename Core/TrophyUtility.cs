@@ -375,6 +375,28 @@ namespace TrophyPrompt.Core
             return null;
         }
 
+        // True when both paths name the same folder, ignoring trailing
+        // separators and "." / ".." segments. Case-insensitive on Windows and
+        // macOS, whose default file systems are.
+        public static bool IsSameDirectory(string a, string b)
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b))
+            {
+                return false;
+            }
+            try
+            {
+                string fa = Path.TrimEndingDirectorySeparator(Path.GetFullPath(a));
+                string fb = Path.TrimEndingDirectorySeparator(Path.GetFullPath(b));
+                StringComparison cmp = OperatingSystem.IsLinux() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+                return string.Equals(fa, fb, cmp);
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is NotSupportedException || ex is PathTooLongException)
+            {
+                return false;
+            }
+        }
+
         public static void DeleteDirectory(string path)
         {
             if (Directory.Exists(path))
