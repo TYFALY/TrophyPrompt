@@ -191,7 +191,7 @@ namespace TrophyPrompt.Views
             Button ok = new Button();
             ok.Content = "OK";
             ok.HorizontalAlignment = HorizontalAlignment.Right;
-            ok.Click += (s, ev) => { w.Close(); tcs.SetResult(true); };
+            ok.Click += (s, ev) => { w.Close(); tcs.TrySetResult(true); };
             panel.Children.Add(tb);
             panel.Children.Add(ok);
             w.Content = panel;
