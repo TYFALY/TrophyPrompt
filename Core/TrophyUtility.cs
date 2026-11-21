@@ -246,15 +246,28 @@ namespace TrophyPrompt.Core
             string root = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "TrophyPrompt", "backups");
+            return BackupTrophyData(trophyDir, root);
+        }
+
+        // Each backup gets its own folder. Two backups of the same folder within
+        // one second (e.g. save, reload, save) used to share a name, and the
+        // second one overwrote the untouched originals with already-saved files.
+        public static string BackupTrophyData(string trophyDir, string root)
+        {
             string name = new DirectoryInfo(trophyDir).Name;
-            string target = Path.Combine(root, name + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-            CopyTrophyData(trophyDir, target, true);
+            string stem = Path.Combine(root, name + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss"));
+            string target = stem;
+            for (int n = 2; Directory.Exists(target) || File.Exists(target); n++)
+            {
+                target = stem + "_" + n;
+            }
+            CopyTrophyData(trophyDir, target, false);
             foreach (string png in Directory.GetFiles(trophyDir))
             {
                 // keep the folder self-contained and restorable as-is
                 if (png.EndsWith(".PNG", StringComparison.OrdinalIgnoreCase))
                 {
-                    File.Copy(png, Path.Combine(target, Path.GetFileName(png)), true);
+                    File.Copy(png, Path.Combine(target, Path.GetFileName(png)), false);
                 }
             }
             return target;

@@ -295,4 +295,34 @@ namespace TrophyPrompt.Tests
             Assert.Equal(root.Trophies[0].Timestamp, back.Trophies[0].Timestamp);
         }
     }
+
+    public class BackupTests
+    {
+        [Fact]
+        public void BackupsInTheSameSecondDoNotOverwriteEachOther()
+        {
+            string work = Path.Combine(Path.GetTempPath(), "tp-backup-" + Guid.NewGuid().ToString("N"));
+            string src = Path.Combine(work, "NPWR00001_00");
+            string root = Path.Combine(work, "backups");
+            Directory.CreateDirectory(src);
+            try
+            {
+                File.WriteAllText(Path.Combine(src, "TROPUSR.DAT"), "original");
+                File.WriteAllText(Path.Combine(src, "TROP000.PNG"), "icon");
+                string first = TrophyUtility.BackupTrophyData(src, root);
+
+                File.WriteAllText(Path.Combine(src, "TROPUSR.DAT"), "saved");
+                string second = TrophyUtility.BackupTrophyData(src, root);
+
+                Assert.NotEqual(first, second);
+                Assert.Equal("original", File.ReadAllText(Path.Combine(first, "TROPUSR.DAT")));
+                Assert.Equal("saved", File.ReadAllText(Path.Combine(second, "TROPUSR.DAT")));
+                Assert.True(File.Exists(Path.Combine(second, "TROP000.PNG")));
+            }
+            finally
+            {
+                Directory.Delete(work, true);
+            }
+        }
+    }
 }
