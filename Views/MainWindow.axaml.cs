@@ -22,6 +22,7 @@ namespace TrophyPrompt.Views
         }
 
         private bool _closingAfterPrompt;
+        private bool _waitingForSave;
 
         public MainWindow()
         {
@@ -61,6 +62,22 @@ namespace TrophyPrompt.Views
 
         private async void OnWindowClosing(object sender, WindowClosingEventArgs e)
         {
+            // Let a running save finish writing the trophy folder first; the
+            // close (and any prompt) is retried once it has.
+            if (Vm.IsSaving)
+            {
+                e.Cancel = true;
+                if (_waitingForSave)
+                {
+                    return;
+                }
+                _waitingForSave = true;
+                Vm.StatusMessage = "Waiting for the save to finish before closing ...";
+                await Vm.WaitForSaveAsync();
+                _waitingForSave = false;
+                Close();
+                return;
+            }
             if (_closingAfterPrompt)
             {
                 Vm.Shutdown();

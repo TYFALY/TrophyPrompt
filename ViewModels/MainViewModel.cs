@@ -182,6 +182,21 @@ namespace TrophyPrompt.ViewModels
             get { return _haveBeenEdited; }
         }
 
+        // True while a Save / Save As is encrypting or writing files.
+        public bool IsSaving
+        {
+            get { return _saveLock.CurrentCount == 0; }
+        }
+
+        // Completes once no save is running. Closing the window mid-save used
+        // to exit the process while the background copy into the original
+        // trophy folder was still running, leaving it half-overwritten.
+        public async Task WaitForSaveAsync()
+        {
+            await _saveLock.WaitAsync();
+            _saveLock.Release();
+        }
+
         public MainViewModel()
         {
             Profiles.Add("Default Profile");
