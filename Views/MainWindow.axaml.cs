@@ -9,6 +9,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Platform.Storage;
 using TrophyPrompt.ViewModels;
 
@@ -163,24 +164,33 @@ namespace TrophyPrompt.Views
             }
         }
 
+        // Shared row colors: LoadingRow fires for every realized row on every
+        // grid rebuild (each edit), and parsed + allocated six brushes each time.
+        private static readonly IBrush LockedBackground = new ImmutableSolidColorBrush(Color.Parse("#2A1619"));
+        private static readonly IBrush LockedForeground = new ImmutableSolidColorBrush(Color.Parse("#FF7B72"));
+        private static readonly IBrush SyncedBackground = new ImmutableSolidColorBrush(Color.Parse("#12261E"));
+        private static readonly IBrush SyncedForeground = new ImmutableSolidColorBrush(Color.Parse("#7EE787"));
+        private static readonly IBrush UnlockedBackground = new ImmutableSolidColorBrush(Color.Parse("#161B22"));
+        private static readonly IBrush UnlockedForeground = new ImmutableSolidColorBrush(Color.Parse("#E6EDF3"));
+
         private void OnLoadingRow(object sender, DataGridRowEventArgs e)
         {
             if (e.Row.DataContext is TrophyItemViewModel row)
             {
                 if (row.RowBrushKey == "Locked")
                 {
-                    e.Row.Background = new SolidColorBrush(Color.Parse("#2A1619"));
-                    e.Row.Foreground = new SolidColorBrush(Color.Parse("#FF7B72"));
+                    e.Row.Background = LockedBackground;
+                    e.Row.Foreground = LockedForeground;
                 }
                 else if (row.RowBrushKey == "Synced")
                 {
-                    e.Row.Background = new SolidColorBrush(Color.Parse("#12261E"));
-                    e.Row.Foreground = new SolidColorBrush(Color.Parse("#7EE787"));
+                    e.Row.Background = SyncedBackground;
+                    e.Row.Foreground = SyncedForeground;
                 }
                 else
                 {
-                    e.Row.Background = new SolidColorBrush(Color.Parse("#161B22"));
-                    e.Row.Foreground = new SolidColorBrush(Color.Parse("#E6EDF3"));
+                    e.Row.Background = UnlockedBackground;
+                    e.Row.Foreground = UnlockedForeground;
                 }
             }
         }
