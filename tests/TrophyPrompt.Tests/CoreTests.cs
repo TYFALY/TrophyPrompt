@@ -325,4 +325,65 @@ namespace TrophyPrompt.Tests
             }
         }
     }
+    public class BatchOrderTests
+    {
+        [Fact]
+        public void PlatinumComesLast()
+        {
+            Assert.Equal(new[] { 1, 2, 3, 0 }, ImportOrder.PlatinumLast(4, true).ToArray());
+        }
+
+        [Fact]
+        public void WithoutPlatinumKeepsIdOrder()
+        {
+            Assert.Equal(new[] { 0, 1, 2 }, ImportOrder.PlatinumLast(3, false).ToArray());
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void EmptyListYieldsNothing(int count)
+        {
+            Assert.Empty(ImportOrder.PlatinumLast(count, true));
+        }
+
+        [Fact]
+        public void PlatinumOnly()
+        {
+            Assert.Equal(new[] { 0 }, ImportOrder.PlatinumLast(1, true).ToArray());
+        }
+    }
+
+    public class RunProcessTests
+    {
+        private static System.Diagnostics.ProcessStartInfo Shell(string script)
+        {
+            var psi = OperatingSystem.IsWindows()
+                ? new System.Diagnostics.ProcessStartInfo("cmd.exe")
+                : new System.Diagnostics.ProcessStartInfo("/bin/sh");
+            psi.ArgumentList.Add(OperatingSystem.IsWindows() ? "/c" : "-c");
+            psi.ArgumentList.Add(script);
+            psi.CreateNoWindow = true;
+            return psi;
+        }
+
+        [Fact]
+        public void HungProcessTimesOutInsteadOfBlocking()
+        {
+            // Never exits on its own; the old runner blocked reading stdout forever.
+            string script = OperatingSystem.IsWindows() ? "ping -n 30 127.0.0.1 >nul" : "sleep 30";
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Assert.Throws<TimeoutException>(() => TrophyUtility.RunProcess(Shell(script), 500));
+            Assert.True(watch.Elapsed < TimeSpan.FromSeconds(20), "timeout was not enforced: " + watch.Elapsed);
+        }
+
+        [Fact]
+        public void CapturesExitCodeAndBothStreams()
+        {
+            var (code, stdout, stderr) = TrophyUtility.RunProcess(Shell("echo out&& echo err 1>&2&& exit 3"), 30000);
+            Assert.Equal(3, code);
+            Assert.Contains("out", stdout);
+            Assert.Contains("err", stderr);
+        }
+    }
 }

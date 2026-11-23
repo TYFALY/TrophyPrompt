@@ -27,6 +27,20 @@ namespace TrophyPrompt.Core
                 return u ? 2 : 1;
             });
         }
+
+        // Trophy ids in the order batch timestamp edits should walk them: the
+        // platinum (id 0) last, so it never ends up dated before the trophies
+        // it requires. Without a platinum, plain id order.
+        public static IEnumerable<int> PlatinumLast(int count, bool hasPlatinum)
+        {
+            if (count <= 0)
+            {
+                return Enumerable.Empty<int>();
+            }
+            return hasPlatinum
+                ? Enumerable.Range(1, count - 1).Append(0)
+                : Enumerable.Range(0, count);
+        }
     }
 
     // Maps an imported trophy entry to its TROPCONF index.

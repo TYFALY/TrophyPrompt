@@ -991,19 +991,27 @@ namespace TrophyPrompt.ViewModels
             }
             DateTime anchor = BatchCustomTime;
             TimeSpan step = TimeSpan.FromMinutes(5);
-            RunBatch(() =>
+            // Platinum last: walking ids in order dated it 5 minutes after the
+            // batch time, before every trophy it requires.
+            int failed = RunBatch(() =>
             {
-                for (int i = 0; i < Trophies.Count; i++)
+                int f = 0;
+                foreach (int i in ImportOrder.PlatinumLast(Trophies.Count, _tconf.HasPlatinium))
                 {
                     if (IsTrophyGot(i) && !IsTrophySync(i))
                     {
-                        ChangeTrophyTime(i, anchor, out _);
+                        if (!ChangeTrophyTime(i, anchor, out _))
+                        {
+                            f++;
+                        }
                         anchor = anchor.Add(step);
                     }
                 }
-                return 0;
+                return f;
             });
-            StatusMessage = "Timestamps copied sequentially from batch time.";
+            StatusMessage = failed == 0
+                ? "Timestamps copied sequentially from batch time."
+                : "Timestamps copied (" + failed + " trophies could not be changed).";
         }
 
         [RelayCommand]
@@ -1016,13 +1024,8 @@ namespace TrophyPrompt.ViewModels
             RunBatch(() =>
             {
                 // Platinum (id 0) goes last: it can only unlock after the rest.
-                int count = Trophies.Count;
-                foreach (int i in Enumerable.Range(1, Math.Max(0, count - 1)).Append(0))
+                foreach (int i in ImportOrder.PlatinumLast(Trophies.Count, _tconf.HasPlatinium))
                 {
-                    if (i >= count)
-                    {
-                        continue;
-                    }
                     if (!IsTrophyGot(i))
                     {
                         UnlockTrophy(i, BatchCustomTime, out _);
