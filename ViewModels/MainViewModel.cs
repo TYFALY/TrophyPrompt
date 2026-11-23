@@ -1560,6 +1560,12 @@ namespace TrophyPrompt.ViewModels
             {
                 return;
             }
+            // The folder may have been closed while the picker was open.
+            if (!_isOpen)
+            {
+                StatusMessage = "Export cancelled — the trophy folder was closed.";
+                return;
+            }
             try
             {
                 List<TrophyDto> trophies = new List<TrophyDto>();
@@ -1659,6 +1665,12 @@ namespace TrophyPrompt.ViewModels
             });
             if (files == null || files.Count == 0)
             {
+                return;
+            }
+            // The folder may have been closed while the picker was open.
+            if (!_isOpen)
+            {
+                StatusMessage = "Import cancelled — the trophy folder was closed.";
                 return;
             }
             try
