@@ -109,9 +109,6 @@ namespace TrophyPrompt.Core
             PrepareUnixTool(app);
             var psi = new System.Diagnostics.ProcessStartInfo(app)
             {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
                 CreateNoWindow = true,
             };
             foreach (string a in args)
@@ -120,39 +117,51 @@ namespace TrophyPrompt.Core
             }
             // pfdtool reads global.conf / games.conf from its working directory.
             psi.WorkingDirectory = ToolDirectory();
+            var (exitCode, stdout, stderr) = RunProcess(psi, 120000);
+            if (exitCode != 0)
+            {
+                string detail = (stderr + Environment.NewLine + stdout).Trim();
+                throw new Exception("pfdtool failed (exit code " + exitCode + "). " +
+                    (OperatingSystem.IsWindows()
+                        ? "Make sure the Microsoft Visual C++ 2010 x86 runtime is installed."
+                        : "Make sure the pfdtool file is executable and built for this CPU.") +
+                    (detail.Length > 0 ? Environment.NewLine + Environment.NewLine + detail : string.Empty));
+            }
+            // pfdtool reports some failures (e.g. unreadable config files)
+            // as "[*] Error: ..." lines while still exiting with code 0.
+            string[] errors = stdout.Split(new[] { (char)13, (char)10 }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(l => l.TrimStart().StartsWith("[*] Error", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            if (errors.Length > 0)
+            {
+                throw new Exception("pfdtool reported an error:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
+            }
+            return stdout;
+        }
+
+        // Both pipes are drained asynchronously so the timeout really applies:
+        // reading stdout synchronously blocked until the tool exited, so a hung
+        // pfdtool froze the open/save forever instead of failing after 2 minutes.
+        internal static (int ExitCode, string Stdout, string Stderr) RunProcess(System.Diagnostics.ProcessStartInfo psi, int timeoutMs)
+        {
+            psi.RedirectStandardOutput = true;
+            psi.RedirectStandardError = true;
+            psi.UseShellExecute = false;
             using (var proc = System.Diagnostics.Process.Start(psi))
             {
                 if (proc == null)
                 {
-                    throw new InvalidOperationException("Could not start pfdtool.");
+                    throw new InvalidOperationException("Could not start " + Path.GetFileName(psi.FileName) + ".");
                 }
+                var stdoutTask = proc.StandardOutput.ReadToEndAsync();
                 var stderrTask = proc.StandardError.ReadToEndAsync();
-                string stdout = proc.StandardOutput.ReadToEnd();
-                if (!proc.WaitForExit(120000))
+                if (!proc.WaitForExit(timeoutMs))
                 {
                     try { proc.Kill(true); } catch { }
-                    throw new TimeoutException("pfdtool did not finish within 2 minutes.");
+                    throw new TimeoutException(Path.GetFileNameWithoutExtension(psi.FileName) + " did not finish within " + (timeoutMs / 1000.0) + " seconds.");
                 }
-                string stderr = stderrTask.GetAwaiter().GetResult();
-                if (proc.ExitCode != 0)
-                {
-                    string detail = (stderr + Environment.NewLine + stdout).Trim();
-                    throw new Exception("pfdtool failed (exit code " + proc.ExitCode + "). " +
-                        (OperatingSystem.IsWindows()
-                            ? "Make sure the Microsoft Visual C++ 2010 x86 runtime is installed."
-                            : "Make sure the pfdtool file is executable and built for this CPU.") +
-                        (detail.Length > 0 ? Environment.NewLine + Environment.NewLine + detail : string.Empty));
-                }
-                // pfdtool reports some failures (e.g. unreadable config files)
-                // as "[*] Error: ..." lines while still exiting with code 0.
-                string[] errors = stdout.Split(new[] { (char)13, (char)10 }, StringSplitOptions.RemoveEmptyEntries)
-                    .Where(l => l.TrimStart().StartsWith("[*] Error", StringComparison.OrdinalIgnoreCase))
-                    .ToArray();
-                if (errors.Length > 0)
-                {
-                    throw new Exception("pfdtool reported an error:" + Environment.NewLine + string.Join(Environment.NewLine, errors));
-                }
-                return stdout;
+                proc.WaitForExit();
+                return (proc.ExitCode, stdoutTask.GetAwaiter().GetResult(), stderrTask.GetAwaiter().GetResult());
             }
         }
 
@@ -331,7 +340,7 @@ namespace TrophyPrompt.Core
             FileInfo[] files = dir.GetFiles();
             foreach (FileInfo file in files)
             {
-                if (TROPHY_FILES_EXTENSION.Contains(file.Extension.ToUpper()))
+                if (TROPHY_FILES_EXTENSION.Contains(file.Extension.ToUpperInvariant()))
                 {
                     string tempPath = Path.Combine(target, file.Name);
                     file.CopyTo(tempPath, overwrite);
