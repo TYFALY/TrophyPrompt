@@ -368,6 +368,16 @@ namespace TrophyPrompt.ViewModels
             StatusMessage = "Loading " + folder + " ...";
             LogDiag("OpenFolderAtAsync: loading '" + folder + "'.");
             int generation = System.Threading.Interlocked.Increment(ref _openGeneration);
+            // Closing the current folder deletes its decrypted copy, which a
+            // running save may still be reading; let that save finish first.
+            if (IsSaving)
+            {
+                await WaitForSaveAsync();
+                if (generation != System.Threading.Volatile.Read(ref _openGeneration))
+                {
+                    return; // a newer open (or a close) was requested meanwhile
+                }
+            }
             if (_isOpen)
             {
                 // Await the close on the UI thread BEFORE touching temp:
@@ -1350,8 +1360,20 @@ namespace TrophyPrompt.ViewModels
         }
 
         [RelayCommand]
-        private void CloseFile()
+        private async Task CloseFileAsync()
         {
+            // Closing deletes the decrypted temp copy; a save still running in
+            // the background reads from it, so wait for that save to finish.
+            if (IsSaving)
+            {
+                int generation = System.Threading.Volatile.Read(ref _openGeneration);
+                StatusMessage = "Waiting for the save to finish before closing ...";
+                await WaitForSaveAsync();
+                if (generation != System.Threading.Volatile.Read(ref _openGeneration))
+                {
+                    return; // a newer open was requested meanwhile; it replaces the folder
+                }
+            }
             CancelPendingOpenAndClose(true);
         }
 
